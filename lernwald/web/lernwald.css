@@ -1,0 +1,53 @@
+/* Lernwald – Anki-Add-on. Copyright (C) 2026 Basti97420. Lizenz: GNU AGPL-3.0-or-later */
+:root { --text: #2d3324; --leise: #6b7060; --flaeche: #f6f3e7; --karte: #ebe6cf; --rand: #cfc8a8; --gruen: #3e7d3a; }
+html.night-mode { --text: #e4e6dc; --leise: #a5a998; --flaeche: #23261f; --karte: #2c3027; --rand: #474c3d; --gruen: #7fbf6a; }
+html, body { margin: 0; height: 100%; background: var(--flaeche); color: var(--text);
+  font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+#lernwald { display: flex; flex-direction: column; min-height: 100vh; }
+
+header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid var(--rand); }
+header h1 { margin: 0; font-size: 20px; color: var(--gruen); }
+.kennzahlen { color: var(--leise); }
+nav { margin-left: auto; display: flex; gap: 6px; }
+button { font: inherit; padding: 5px 12px; border: 1px solid var(--rand); border-radius: 6px; background: var(--karte);
+  color: var(--text); cursor: pointer; }
+button:hover { border-color: var(--gruen); }
+button.an { background: var(--gruen); border-color: var(--gruen); color: #fff; }
+.hinweis { margin: 10px 16px 0; padding: 8px 12px; border-radius: 6px; background: #fff3b0; color: #4a4020; }
+
+svg.karte { width: 100%; height: calc(100vh - 200px); min-height: 420px; background: var(--karte); }
+.gras { stroke: #9fae6e; stroke-width: 1; fill: none; opacity: .55; }
+.gebiet { cursor: pointer; }
+.gebiet:hover .flaeche { stroke: #f2d640; stroke-width: 5; }
+.schild rect { fill: rgba(255, 252, 240, .92); stroke: #8a7d55; stroke-width: 1; }
+.schild text { text-anchor: middle; fill: #2d3324; }
+.schild .name { font-weight: 700; font-size: 16px; }
+.schild .info { font-size: 11px; fill: #5b604f; }
+
+.legende { display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 8px 16px; border-top: 1px solid var(--rand);
+  font-size: 12px; color: var(--leise); }
+.legende span { display: inline-flex; align-items: center; gap: 4px; }
+
+.gebietkopf { display: flex; align-items: center; gap: 14px; padding: 10px 16px; }
+.gebietkopf h2 { margin: 0; font-size: 18px; }
+.art { color: var(--leise); }
+.zustand { padding: 2px 10px; border-radius: 10px; font-size: 12px; color: #fff; }
+.zustand.gesund { background: #3e7d3a; } .zustand.mittel { background: #869c4b; }
+.zustand.verwildert { background: #9a7b40; } .zustand.wiese { background: #8fa95a; }
+svg.szene { width: 100%; aspect-ratio: 1000 / 620; max-height: 68vh; display: block; }
+.gebietinfo { display: flex; flex-wrap: wrap; gap: 8px 40px; padding: 10px 16px; align-items: flex-start; }
+.gebietinfo table { border-collapse: collapse; }
+.gebietinfo td { padding: 1px 6px; vertical-align: middle; }
+.gebietinfo .zahl { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.gebietinfo p { margin: 4px 0; max-width: 360px; }
+.klein { font-size: 12px; color: var(--leise); }
+
+.erklaerung { margin: 12px 16px 0; max-width: 720px; color: var(--leise); }
+.album { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; padding: 16px; }
+.fund { display: flex; flex-direction: column; align-items: center; padding: 10px; border: 1px solid var(--rand);
+  border-radius: 8px; background: var(--karte); text-align: center; }
+.fund b { font-size: 15px; }
+.fund span { font-size: 12px; color: var(--leise); }
+.fund.fehlt svg { filter: grayscale(1) brightness(0); opacity: .18; }
+.fund.neu { border-color: #e0b400; box-shadow: 0 0 0 2px #f2d64055; }
+.leer { padding: 40px 16px; text-align: center; color: var(--leise); }
