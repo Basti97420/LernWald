@@ -37,13 +37,30 @@ class Stufen(unittest.TestCase):
         self.assertEqual(daten.einstellungen({"thema": "stadt"})["thema"], "stadt")
         self.assertEqual(daten.einstellungen({"thema": "mond"})["thema"], "wald")
 
+    def test_hintergrund_einstellungen(self):
+        self.assertTrue(daten.einstellungen({})["hintergrund"])
+        self.assertEqual(daten.einstellungen({})["hintergrund_deckkraft"], 35)
+        self.assertEqual(daten.einstellungen({"hintergrund_deckkraft": 0})["hintergrund_deckkraft"], 5)
+        self.assertEqual(daten.einstellungen({"hintergrund_deckkraft": 250})["hintergrund_deckkraft"], 100)
+        self.assertEqual(daten.einstellungen({"hintergrund_deckkraft": "viel"})["hintergrund_deckkraft"], 35)
+        self.assertTrue(daten.einstellungen({})["animationen"])
+
     def test_belohnungen_eindeutig(self):
         # das Album ist ein gemeinsames Wörterbuch für alle Themen
-        ids = [b[0] for t in daten.THEMEN.values() for b in t["belohnungen"]]
+        # Themen, die dieselbe Liste teilen (Stadt und Tusche-Stadt), zählen einmal
+        listen = {id(t["belohnungen"]): t["belohnungen"] for t in daten.THEMEN.values()}
+        ids = [b[0] for liste in listen.values() for b in liste]
         self.assertEqual(len(ids), len(set(ids)))
         for t in daten.THEMEN.values():
             schwellen = [b[2] for b in t["belohnungen"]]
             self.assertEqual(schwellen, sorted(schwellen))
+
+    def test_serie_und_tageszeit(self):
+        self.assertEqual(daten._serie({0: 3, 1: 2, 2: 1, 4: 1}), 3)
+        self.assertEqual(daten._serie({1: 2, 2: 1}), 2)      # heute noch nicht gelernt: Serie läuft weiter
+        self.assertEqual(daten._serie({2: 1}), 0)
+        self.assertEqual(daten.tageszeit([20, 21, 8]), "abend")
+        self.assertIsNone(daten.tageszeit([]))
 
     def test_album(self):
         album = {"meise": "2026-11-01"}
@@ -133,6 +150,32 @@ class Sammlung(unittest.TestCase):
         frei = {t[0] for t in daten.TIERE if t[2] <= wald["gesunde_gebiete"]}
         self.assertTrue(set(wald["gesichtet"]) <= frei)
         self.assertIn("meise", frei)
+
+    def test_chronik(self):
+        wald = daten.wald_berechnen(self.col, {"thema": "tusche"})
+        c = wald["chronik"]
+        self.assertEqual(len(c["tage"]), daten.CHRONIK_TAGE)
+        self.assertEqual(c["serie"], 23)                    # Beispiel: die letzten 23 Tage ohne Lücke
+        self.assertEqual(c["wiederholungen"], sum(c["tage"]))   # Verlauf ist kürzer als die Chronik
+        self.assertTrue(80 <= c["quote"] <= 95)
+        arten = [(m["art"], m["wert"]) for m in c["meilensteine"]]
+        self.assertIn(("wiederholungen", 1000), arten)
+        self.assertIn(("serie", 7), arten)
+        g = {x["name"]: x["chronik"] for x in wald["gebiete"]}
+        self.assertEqual(g["Chemie"]["pause"], 20)
+        self.assertEqual(g["Chemie"]["heute"], 0)
+        self.assertLess(g["Chemie"]["quote"], 80)           # Regen
+        self.assertEqual(g["Spanisch"], {"lerntage": 0, "heute": 0, "pause": None, "quote": None, "serie": 0})
+        self.assertEqual(g["Arbeit"]["serie"], 23)
+        self.assertGreater(g["Arbeit"]["heute"], 0)
+
+    def test_manuelle_eintraege_zaehlen_nicht(self):
+        cid = self.col.find_cards("deck:Spanisch")[0]
+        rid = (self.col.sched.day_cutoff - 3600) * 1000
+        self.col.db.execute("insert into revlog values (?, ?, -1, 0, 0, 0, 0, 0, 4)", rid, cid)
+        wald = daten.wald_berechnen(self.col, {})
+        self.assertEqual({x["name"]: x["chronik"] for x in wald["gebiete"]}["Spanisch"]["lerntage"], 0)
+        self.col.db.execute("delete from revlog where id = ?", rid)
 
     def test_ohne_automatik_leer(self):
         self.assertEqual(daten.wald_berechnen(self.col, {"hauptstapel_automatisch": False})["gebiete"], [])

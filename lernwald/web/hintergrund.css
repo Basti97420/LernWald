@@ -1,0 +1,19 @@
+/* Lernwald – Anki-Add-on. Copyright (C) 2026 Basti97420. Lizenz: GNU AGPL-3.0-or-later */
+/* Die Karte blass hinter der Stapelübersicht. Nur Regeln unter #lernwald, Ankis eigene Seite bleibt unverändert. */
+#lernwald.lw-hintergrund { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: var(--lw-deckkraft, .35); }
+body > *:not(#lernwald):not(script):not(#lernwald-defs) { position: relative; z-index: 1; }
+#lernwald.lw-hintergrund :is(svg.karte, svg.szene) { width: 100%; height: 100%; display: block; }
+
+.lw-hintergrund .gras { stroke: #9fae6e; stroke-width: 1; fill: none; opacity: .55; }
+.lw-hintergrund .schild rect { fill: rgba(255, 252, 240, .92); stroke: #8a7d55; stroke-width: 1; }
+.lw-hintergrund .schild text { text-anchor: middle; fill: #2d3324; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+.lw-hintergrund .schild .name { font-weight: 700; font-size: 16px; }
+.lw-hintergrund .schild .info { font-size: 11px; fill: #5b604f; }
+
+/* Tusche-Stadt */
+.lw-hintergrund.thema-tusche .zeichnung { filter: url(#lw-zittern); }
+.lw-hintergrund.thema-tusche .zeichnung :is(rect, path, circle, ellipse)[fill]:not([stroke]):not([fill="none"]):not([fill="url(#lw-schatten)"]) {
+  stroke: #2b2118; stroke-width: .8px; vector-effect: non-scaling-stroke; }
+.lw-hintergrund.thema-tusche .gras { stroke: #2b2118; opacity: .5; }
+.lw-hintergrund.thema-tusche .schild rect { fill: #f4ecd8; stroke: #2b2118; }
+.lw-hintergrund.thema-tusche .schild text { fill: #2b2118; font-family: Georgia, serif; }

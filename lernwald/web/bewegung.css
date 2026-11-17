@@ -1,0 +1,55 @@
+/* Lernwald – Anki-Add-on. Copyright (C) 2026 Basti97420. Lizenz: GNU AGPL-3.0-or-later */
+/* Bewegung in den Bildern (Vorbild: Capriccio von emollick, eigener Code). Dauer und Versatz setzt lernwald.js
+   je Element; Weglängen kommen über --weg. Aus mit der Einstellung „Animationen“ (.lw-ruhig) oder wenn das
+   System weniger Bewegung wünscht. */
+
+/* Vögel ziehen in leichten Wellen über den Himmel, die Flügel schlagen */
+#lernwald .lw-flug { animation: lw-flug linear infinite; }
+#lernwald .lw-fluegel { animation: lw-fluegel ease-in-out infinite alternate;
+  transform-box: fill-box; transform-origin: 50% 100%; }
+@keyframes lw-flug {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(calc(var(--weg) * .25), -9px); }
+  50%  { transform: translate(calc(var(--weg) * .5), 4px); }
+  75%  { transform: translate(calc(var(--weg) * .75), -6px); }
+  100% { transform: translate(var(--weg), 0); }
+}
+@keyframes lw-fluegel { from { transform: scaleY(1); } to { transform: scaleY(-.5); } }
+
+/* Bewohner gehen hin und her, drehen am Ende um und wippen beim Gehen */
+#lernwald .lw-gehen { animation: lw-gehen linear infinite; }
+#lernwald .lw-wippen { animation: lw-wippen ease-in-out infinite alternate; }
+@keyframes lw-gehen {
+  0%   { transform: translateX(0) scaleX(1); }
+  48%  { transform: translateX(var(--weg)) scaleX(1); }
+  50%  { transform: translateX(var(--weg)) scaleX(-1); }
+  98%  { transform: translateX(0) scaleX(-1); }
+  100% { transform: translateX(0) scaleX(1); }
+}
+@keyframes lw-wippen { from { transform: translateY(0); } to { transform: translateY(-1.2px); } }
+
+/* Wolken treiben langsam, Sterne funkeln, Laternen flackern, Wimpel wehen */
+#lernwald .lw-wolke { animation: lw-wolke ease-in-out infinite alternate; }
+@keyframes lw-wolke { from { transform: translateX(0); } to { transform: translateX(var(--weg)); } }
+#lernwald .lw-stern { animation: lw-funkeln ease-in-out infinite alternate; }
+@keyframes lw-funkeln { from { opacity: .9; } to { opacity: .2; } }
+#lernwald .lw-licht { animation: lw-flackern 2.6s steps(1) infinite; }
+@keyframes lw-flackern { 0% { opacity: 1; } 31% { opacity: .82; } 37% { opacity: 1; } 64% { opacity: .9; } 70% { opacity: 1; } }
+#lernwald .lw-wimpel { animation: lw-wehen ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 0; }
+@keyframes lw-wehen { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
+
+/* Bäume wiegen sich im Wind */
+#lernwald .lw-wiegen { animation: lw-wiegen ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
+@keyframes lw-wiegen { from { transform: rotate(-1.6deg); } to { transform: rotate(1.6deg); } }
+
+/* Regen fällt */
+#lernwald .lw-regen { animation: lw-regen .45s linear infinite; }
+@keyframes lw-regen { from { transform: translate(0, 0); } to { transform: translate(-6px, 20px); } }
+
+/* Beim Öffnen eines Gebiets wachsen Bäume bzw. Häuser nacheinander aus dem Boden */
+#lernwald .lw-wachsen { animation: lw-wachsen .7s cubic-bezier(.2, .9, .3, 1.25) both;
+  transform-box: fill-box; transform-origin: 50% 100%; }
+@keyframes lw-wachsen { from { transform: scale(.1, 0); opacity: 0; } 40% { opacity: 1; } to { transform: scale(1); } }
+
+#lernwald.lw-ruhig *, #lernwald.lw-ruhig *::before { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { #lernwald * { animation: none !important; } }

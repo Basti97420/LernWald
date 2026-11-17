@@ -21,7 +21,8 @@ def main(ziel_ordner):
             for d in sorted(dateien):
                 pfad = os.path.join(ordner, d)
                 rel = os.path.relpath(pfad, QUELLE)
-                if rel not in AUSLASSEN and not d.endswith(".pyc"):
+                macos = d == ".DS_Store" or d.startswith("._")  # Beiwerk von macOS
+                if rel not in AUSLASSEN and not d.endswith(".pyc") and not macos:
                     z.write(pfad, rel)
     return ziel
 

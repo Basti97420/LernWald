@@ -2,5 +2,8 @@
  "thema": "wald",
  "gebiete": [],
  "hauptstapel_automatisch": true,
- "max_baeume": 400
+ "max_baeume": 400,
+ "hintergrund": true,
+ "hintergrund_deckkraft": 35,
+ "animationen": true
 }

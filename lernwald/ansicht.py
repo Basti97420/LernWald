@@ -16,7 +16,7 @@ from . import daten
 
 ORDNER = os.path.dirname(__file__)
 ALBUM = os.path.join(ORDNER, "user_files", "album.json")
-SKRIPTE = ("grundlagen.js", "thema-wald.js", "thema-stadt.js", "lernwald.js")  # Reihenfolge wichtig
+SKRIPTE = ("grundlagen.js", "thema-wald.js", "thema-stadt.js", "thema-tusche.js", "lernwald.js")  # Reihenfolge wichtig
 
 _fenster = None
 
@@ -63,7 +63,7 @@ class Fenster(QDialog):
         roh = json.dumps(berechnen(), ensure_ascii=False).replace("</", "<\\/")
         self.web.stdHtml(
             '<div id="lernwald"></div><script type="application/json" id="lernwald-daten">%s</script>' % roh,
-            css=[pfad + "lernwald.css"],
+            css=[pfad + "lernwald.css", pfad + "bewegung.css"],
             js=[pfad + d for d in SKRIPTE],
             context=self,
             default_css=False,
@@ -83,6 +83,48 @@ class Fenster(QDialog):
         _fenster = None
         self.web.cleanup()
         super().reject()
+
+
+_zwischenspeicher = {}  # Daten für den Hintergrund, solange sich Sammlung, Tag und Einstellungen nicht ändern
+
+
+def _hintergrund_daten(cfg):
+    schluessel = (getattr(mw.col, "mod", None), mw.col.sched.today, json.dumps(cfg, sort_keys=True))
+    if _zwischenspeicher.get(cfg.get("_ansicht")) is None or _zwischenspeicher[cfg["_ansicht"]][0] != schluessel:
+        _zwischenspeicher[cfg["_ansicht"]] = (schluessel, daten.wald_berechnen(mw.col, cfg))
+    return _zwischenspeicher[cfg["_ansicht"]][1]
+
+
+def hintergrund_einsetzen(web_content, context):
+    """gui_hooks.webview_will_set_content: in der Stapelübersicht die Karte aller Gebiete, im geöffneten Stapel
+    sein eigenes Gebiet (Wald bzw. Stadt nur aus diesem Stapel) blass als Hintergrund."""
+    from aqt.deckbrowser import DeckBrowser
+    from aqt.overview import Overview
+    if not isinstance(context, (DeckBrowser, Overview)) or mw.col is None:
+        return
+    cfg = daten.einstellungen(mw.addonManager.getConfig(__name__))
+    if not cfg["hintergrund"]:
+        return
+    if isinstance(context, Overview):
+        stapel = mw.col.decks.current()["name"]
+        cfg = dict(cfg, gebiete=[{"name": stapel.split("::")[-1], "art": "stapel", "wert": stapel}],
+                   _ansicht="stapel")
+    else:
+        cfg = dict(cfg, _ansicht="karte")
+    try:
+        wald = _hintergrund_daten(cfg)
+    except Exception as e:  # Anki darf nie an Lernwald scheitern
+        print("Lernwald: Hintergrund nicht berechnet:", e)
+        return
+    wald = dict(wald, album={}, neu=[])
+    pfad = "/_addons/%s/web/" % mw.addonManager.addonFromModule(__name__)
+    web_content.css.extend([pfad + "hintergrund.css", pfad + "bewegung.css"])
+    web_content.js.extend(pfad + d for d in SKRIPTE)
+    roh = json.dumps(wald, ensure_ascii=False).replace("</", "<\\/")
+    web_content.body += (
+        '<div id="lernwald" class="lw-hintergrund" data-ansicht="%s" style="--lw-deckkraft:%s" aria-hidden="true"></div>'
+        '<script type="application/json" id="lernwald-daten">%s</script>'
+        % ("gebiet" if cfg["_ansicht"] == "stapel" else "karte", cfg["hintergrund_deckkraft"] / 100, roh))
 
 
 def zeigen():

@@ -34,6 +34,7 @@ def main(ziel, cfg=None):
                 '<script type="application/json" id="lernwald-daten">%s</script>'
                 '<script>document.addEventListener("DOMContentLoaded", function () {'
                 ' var h = location.hash.slice(1); if (h === "album") lernwald.zeigeAlbum();'
+                ' else if (h === "chronik") lernwald.zeigeChronik();'
                 ' else if (h) lernwald.zeigeGebiet(+h); });</script></body></html>' % (css, js, roh))
     return wald
 

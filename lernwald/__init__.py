@@ -24,6 +24,7 @@ def _einrichten():
     mw.addonManager.setConfigAction(__name__, einstellungen.zeigen)
     mw.addonManager.setWebExports(__name__, r"web/.*\.(js|css)")
     gui_hooks.top_toolbar_did_init_links.append(_leiste)
+    gui_hooks.webview_will_set_content.append(ansicht.hintergrund_einsetzen)
 
 
 if mw is not None:  # beim Testen ohne laufendes Anki nichts einrichten

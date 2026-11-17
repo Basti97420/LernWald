@@ -20,8 +20,46 @@ Je mehr Gebiete gesund sind, desto seltenere. In der Stadt zeigt jedes Gebiet au
 (Weiler, Dorf, Kleinstadt, Stadt, Großstadt); große Häuser stehen in der Mitte, Bauplätze am Rand.
 Erstsichtungen landen im Album (`user_files/album.json`, bleibt bei Updates erhalten).
 
+Die Karte liegt außerdem blass als Hintergrund hinter der Stapelübersicht von Anki (abschaltbar, Deckkraft
+einstellbar). Sie wird neu berechnet, sobald sich die Sammlung ändert.
+Öffnet man einen Stapel, liegt dort sein eigenes Gebiet als Hintergrund: der Wald bzw. die Stadt nur aus den
+Karten dieses Stapels.
+
+### Bewegung
+
+Nach dem Vorbild von Capriccio (emollick, MIT; kein Code übernommen) bewegen sich die Bilder: Vögel ziehen mit
+Flügelschlag, Bewohner gehen wippend hin und her, Wolken treiben, Sterne funkeln, Laternen flackern, Wimpel wehen,
+im Wald wiegen sich die Bäume, Regen fällt. Beim Öffnen eines Gebiets wachsen Bäume bzw. Häuser nacheinander aus
+dem Boden. Alles in `web/bewegung.css`, Dauer und Versatz je Element setzt `lernwald.js`. Abschaltbar in den
+Einstellungen; bei „weniger Bewegung“ im System steht alles still.
+
 Öffnen über **Werkzeuge → Lernwald** oder den Knopf in der oberen Leiste. Einstellungen über den Knopf im
 Fenster oder **Werkzeuge → Add-ons → Lernwald → Einstellungen**.
+
+### Tusche-Stadt
+
+Drittes Thema: dieselbe Stadt, gezeichnet wie ein Kupferstich (Vorbild für den Stil: Capriccio von emollick,
+MIT; davon ist kein Code übernommen). `web/thema-tusche.js` nimmt die Zeichnungen der Stadt und ersetzt jede
+Füllfarbe nach ihrer Helligkeit durch Papier oder eine von vier Schraffuren, Linien werden Tusche, Schatten
+schraffiert, der Himmel waagrecht liniert. Ein SVG-Filter (`feTurbulence` + `feDisplacementMap`) lässt die
+Striche leicht zittern. Die Sehenswürdigkeiten sind dieselben wie in der Stadt.
+
+### Statistik im Bild
+
+`daten.chronik_berechnen` liest das revlog (ohne manuelle Einträge) mit Ankis Tagesgrenze:
+
+| Statistik | im Bild |
+|---|---|
+| Lerntage im Gebiet | Ausbau: Stadt je 7 Tage eine Laterne, je 30 eine Bank, ab 100 Stadtmauer, ab 200 Aquädukt; Wald je 3 Tage eine Blume, je 30 eine Bank |
+| Serie im Gebiet ab 7 Tagen | Wimpelkette über dem Platz |
+| Wiederholungen heute im Gebiet | so viele Bewohner bzw. Wanderer (höchstens 30) |
+| Trefferquote 30 Tage im Gebiet | Wetter: ab 90 % Sonne, ab 80 % Wolken, darunter Regen |
+| meist gelernt um (ganze Sammlung) | Licht: Morgen, Tag, Abend (Abendhimmel), Nacht (Mond und Sterne) |
+| Lerntage der letzten 53 Wochen | Reiter „Chronik“: Pflasterstraße, ein Stein je Tag, dunkler bei mehr Wiederholungen, Lücke mit Gras ohne Lernen |
+| Meilensteine (Wiederholungen, Lerntage, Serie) | Denkmäler mit Datum in der Chronik |
+
+Die Chronik zeigt außerdem Serie, Lerntage, Wiederholungen, heute (Minuten, neue Karten), morgen fällig,
+Trefferquote und eine Tabelle je Gebiet.
 
 Alle Grafiken sind SVG, im Code gezeichnet, keine fremden Bilder.
 
@@ -32,24 +70,27 @@ Alle Grafiken sind SVG, im Code gezeichnet, keine fremden Bilder.
   - `ansicht.py` – Fenster mit Webansicht, Album
   - `einstellungen.py` – Dialog für Thema und Gebiete
   - `web/grundlagen.js` – gemeinsame Hilfen; `web/thema-wald.js`, `web/thema-stadt.js` – Zeichnungen, Texte
-    und Anordnung je Thema; `web/lernwald.js` – Karte, Gebiet, Album
+    und Anordnung je Thema; `web/thema-tusche.js` – zeichnet die Stadt als Kupferstich nach (`nachbearbeiten`,
+    `defs`); `web/lernwald.js` – Karte, Gebiet, Chronik, Album, Wetter und Bewohner
 - `werkzeuge/` – Beispielsammlung, HTML-Vorschau, Paketieren, Test-Add-on für ein echtes Anki
 - `tests/` – Tests für `daten.py`
 
 Ein neues Thema braucht einen Eintrag in `THEMEN` (`daten.py`, Belohnungen mit Kennungen, die es noch nicht
 gibt), eine Datei `web/thema-NAME.js` mit denselben Feldern wie `thema-wald.js`, einen Eintrag in `SKRIPTE`
-(`ansicht.py`) und einen Text in `THEMENTEXT` (`einstellungen.py`).
+(`ansicht.py`) und einen Text in `THEMENTEXT` (`einstellungen.py`). Optional: `ausbau`, `ausbauText`,
+`bewohner`, `leuteText`, `pflasterTitel`, `nachbearbeiten` und `defs` (siehe `thema-tusche.js`).
 
 ## Entwickeln
 
 ```sh
 python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt   # anki + aqt (Anki 26.09 samt Qt)
 .venv/bin/python -m unittest discover tests                              # Tests
-.venv/bin/python werkzeuge/vorschau.py /tmp/vorschau.html stadt          # Vorschau ohne Anki (wald oder stadt)
+.venv/bin/python werkzeuge/vorschau.py /tmp/vorschau.html tusche         # Vorschau ohne Anki (wald, stadt, tusche)
 .venv/bin/python werkzeuge/paketieren.py                                 # dist/lernwald-<version>.ankiaddon
 ```
 
-Vorschau: `vorschau.html#3` öffnet Gebiet 3, `#album` das Album.
+Vorschau: `vorschau.html#3` öffnet Gebiet 3, `#chronik` die Chronik, `#album` das Album. Die Beispielsammlung
+hat einen Lernverlauf von 240 Tagen (Chemie seit 20 Tagen ohne Lernen, Spanisch nie gelernt).
 
 Test im echten Anki ohne Bildschirm: siehe `werkzeuge/ankitest/LIESMICH.md`.
 

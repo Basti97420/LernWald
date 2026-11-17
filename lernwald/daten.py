@@ -3,7 +3,9 @@
 # Lizenz: GNU AGPL-3.0-or-later, siehe LICENSE
 """Berechnet aus der Sammlung, wie Wald oder Stadt aussehen. Ohne Qt, damit es sich testen lässt."""
 
+import datetime
 import random
+import time
 import zlib
 
 from anki.collection import SearchNode
@@ -58,13 +60,26 @@ THEMEN = {
         ),
     },
 }
+# Tusche-Stadt: dieselbe Stadt, gezeichnet wie ein Kupferstich; teilt sich die Sehenswürdigkeiten mit „stadt“
+THEMEN["tusche"] = {"name": "Tusche-Stadt", "belohnungen": THEMEN["stadt"]["belohnungen"]}
 TIERE = THEMEN["wald"]["belohnungen"]
+
+CHRONIK_TAGE = 371      # so viele Tage zeigt die Chronik (53 Wochen)
+QUOTE_TAGE = 30         # Zeitraum für die Trefferquote
+MEILENSTEINE = (
+    ("wiederholungen", (100, 1000, 5000, 10000, 25000, 50000, 100000)),
+    ("lerntage", (10, 50, 100, 200, 365, 500, 1000)),
+    ("serie", (7, 30, 100, 200, 365)),
+)
 
 STANDARD = {
     "thema": "wald",                # Schlüssel aus THEMEN
     "gebiete": [],                  # [{"name": …, "art": "stapel"|"schlagwort"|"suche", "wert": …}]
     "hauptstapel_automatisch": True,  # ohne Einträge: jeder Hauptstapel ist ein Gebiet
     "max_baeume": 400,              # höchstens so viele Bäume bzw. Häuser je Gebiet zeichnen
+    "hintergrund": True,            # Karte blass hinter der Stapelübersicht zeigen
+    "hintergrund_deckkraft": 35,    # in Prozent, 5 bis 100
+    "animationen": True,            # Vögel, Bewohner, Wolken, Wind … bewegen sich
 }
 
 
@@ -75,6 +90,10 @@ def einstellungen(roh):
     cfg["gebiete"] = [g for g in cfg.get("gebiete") or [] if (g.get("wert") or "").strip()]
     if cfg["thema"] not in THEMEN:
         cfg["thema"] = STANDARD["thema"]
+    try:
+        cfg["hintergrund_deckkraft"] = min(100, max(5, int(cfg["hintergrund_deckkraft"])))
+    except (TypeError, ValueError):
+        cfg["hintergrund_deckkraft"] = STANDARD["hintergrund_deckkraft"]
     return cfg
 
 
@@ -149,7 +168,8 @@ def gebiet_berechnen(col, gebiet, heute, max_baeume):
     zahlen = dict.fromkeys(STUFEN, 0)
     welk = 0
     baeume = []
-    for _cid, typ, queue, ivl, lapses, due, tags in _karten(col, col.find_cards(gebiet["suche"])):
+    cids = col.find_cards(gebiet["suche"])
+    for _cid, typ, queue, ivl, lapses, due, tags in _karten(col, cids):
         s = stufe(typ, queue, ivl, lapses, " leech " in " %s " % tags.lower())
         faellig = queue in (2, 3) and due < heute
         zahlen[s] += 1
@@ -169,7 +189,120 @@ def gebiet_berechnen(col, gebiet, heute, max_baeume):
         "zustand": zustand(g),
         "baeume": [[s, int(f)] for s, f in baeume],
         "belohnungen": [],
+        "_cids": set(cids),
     }
+
+
+def _tag(rid, cutoff):
+    """Tage vor heute (0 = heute) für eine revlog-ID, mit Ankis Tagesgrenze."""
+    return int((cutoff - rid / 1000) // 86400)
+
+
+def _serie(tage, ab=0):
+    """Tage in Folge mit Wiederholungen, rückwärts ab Tag `ab`; heute ohne Lernen bricht die Serie noch nicht."""
+    if ab == 0 and not tage.get(0):
+        ab = 1
+    n = 0
+    while tage.get(ab + n):
+        n += 1
+    return n
+
+
+def tageszeit(stunden):
+    """Wann meistens gelernt wird: morgen, tag, abend oder nacht; None ohne Wiederholungen."""
+    if not stunden:
+        return None
+    zaehler = {}
+    for h in stunden:
+        z = "morgen" if 5 <= h < 11 else "tag" if h < 17 and h >= 11 else "abend" if 17 <= h < 23 else "nacht"
+        zaehler[z] = zaehler.get(z, 0) + 1
+    return max(zaehler, key=zaehler.get)
+
+
+def chronik_berechnen(col, gebiete_cids, heute_datum=None):
+    """Statistik aus dem revlog: für die ganze Sammlung und je Gebiet.
+
+    gebiete_cids: je Gebiet eine Menge Karten-IDs. Manuelle Einträge (ease 0) zählen nicht.
+    """
+    heute_datum = heute_datum or datetime.date.today()
+    cutoff = col.sched.day_cutoff
+    karte_zu = {}
+    for i, cids in enumerate(gebiete_cids):
+        for c in cids:
+            karte_zu.setdefault(c, []).append(i)
+    tage = {}                                   # Tag → Wiederholungen
+    zeit_heute = 0
+    treffer = versuche = 0
+    stunden = []
+    je = [{"tage": set(), "heute": 0, "treffer": 0, "versuche": 0, "letzter": None} for _ in gebiete_cids]
+    for rid, cid, ease, typ, dauer in col.db.all("select id, cid, ease, type, time from revlog where ease > 0 order by id"):
+        t = _tag(rid, cutoff)
+        tage[t] = tage.get(t, 0) + 1
+        quote = typ == 1 and t < QUOTE_TAGE
+        if t == 0:
+            zeit_heute += dauer
+        if quote:
+            versuche += 1
+            treffer += ease > 1
+        if t < QUOTE_TAGE:
+            stunden.append(time.localtime(rid / 1000).tm_hour)
+        for i in karte_zu.get(cid, ()):
+            g = je[i]
+            g["tage"].add(t)
+            g["heute"] += t == 0
+            g["letzter"] = t
+            if quote:
+                g["versuche"] += 1
+                g["treffer"] += ease > 1
+    # neue Karten heute: erste Wiederholung überhaupt liegt heute
+    neu_heute = col.db.scalar(
+        "select count() from (select min(id) m from revlog where ease > 0 group by cid) where m > ?",
+        (cutoff - 86400) * 1000)
+    morgen = len(col.find_cards("prop:due=1"))
+    # Meilensteine: erster Tag, an dem die Schwelle erreicht war (Tage rückwärts durchlaufen = vorwärts in der Zeit)
+    erreicht = []
+    summe = lerntage = serie = beste = 0
+    for t in sorted(tage, reverse=True):
+        summe += tage[t]
+        lerntage += 1
+        serie = serie + 1 if tage.get(t + 1) else 1
+        beste = max(beste, serie)
+        werte = {"wiederholungen": summe, "lerntage": lerntage, "serie": serie}
+        for art, schwellen in MEILENSTEINE:
+            for sw in schwellen:
+                if werte[art] >= sw and not any(m["art"] == art and m["wert"] == sw for m in erreicht):
+                    erreicht.append({"art": art, "wert": sw, "datum": (heute_datum - datetime.timedelta(days=t)).isoformat()})
+    offen = []
+    for art, schwellen in MEILENSTEINE:
+        jetzt_wert = {"wiederholungen": summe, "lerntage": lerntage, "serie": _serie(tage)}[art]
+        naechste = [sw for sw in schwellen if sw > max([m["wert"] for m in erreicht if m["art"] == art] or [0])]
+        if naechste:
+            offen.append({"art": art, "wert": naechste[0], "stand": jetzt_wert})
+    gesamt = {
+        "tage": [tage.get(t, 0) for t in range(CHRONIK_TAGE)],   # Index 0 = heute
+        "heute": tage.get(0, 0),
+        "minuten_heute": round(zeit_heute / 60000),
+        "neu_heute": neu_heute,
+        "morgen": morgen,
+        "serie": _serie(tage),
+        "beste_serie": beste,
+        "lerntage": lerntage,
+        "wiederholungen": summe,
+        "quote": round(100 * treffer / versuche) if versuche >= 10 else None,
+        "tageszeit": tageszeit(stunden),
+        "meilensteine": erreicht,
+        "naechste": offen,
+        "wochentag": heute_datum.weekday(),
+        "datum": heute_datum.isoformat(),
+    }
+    gebiete = [{
+        "lerntage": len(g["tage"]),
+        "heute": g["heute"],
+        "pause": g["letzter"],                        # Tage seit dem letzten Lernen, None = nie
+        "quote": round(100 * g["treffer"] / g["versuche"]) if g["versuche"] >= 10 else None,
+        "serie": _serie(dict.fromkeys(g["tage"], 1)),
+    } for g in je]
+    return gesamt, gebiete
 
 
 def belohnungen_verteilen(gebiete, liste):
@@ -200,6 +333,9 @@ def wald_berechnen(col, cfg):
     heute = col.sched.today
     gebiete = [gebiet_berechnen(col, g, heute, int(cfg["max_baeume"])) for g in gebiete_festlegen(col, cfg)]
     gesichtet = belohnungen_verteilen(gebiete, liste)
+    chronik, je = chronik_berechnen(col, [g.pop("_cids") for g in gebiete])
+    for g, c in zip(gebiete, je):
+        g["chronik"] = c
     return {
         "thema": cfg["thema"],
         "gebiete": gebiete,
@@ -207,6 +343,8 @@ def wald_berechnen(col, cfg):
         "gesunde_gebiete": sum(1 for g in gebiete if g["zustand"] == "gesund"),
         "min_reife": MIN_REIFE_FUER_BELOHNUNG,
         "belohnungen": [{"id": b[0], "name": b[1], "ab": b[2]} for b in liste],
+        "chronik": chronik,
+        "animationen": bool(cfg["animationen"]),
     }
 
 

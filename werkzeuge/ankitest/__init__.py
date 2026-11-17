@@ -25,16 +25,35 @@ def _start():
         import json
         mw.addonManager.writeConfig("lernwald", json.loads(CFG))
     ansicht = sys.modules["lernwald.ansicht"]
-    ansicht.zeigen()
-    w = ansicht._fenster
+    w = None
+    mw.deckBrowser.refresh()
+
+    def schritt1():
+        _foto(mw, "stapel.png")  # Stapelübersicht mit der Karte als Hintergrund
+        name = os.environ.get("LERNWALD_STAPEL", "Arbeit")
+        mw.col.decks.select(mw.col.decks.id_for_name(name))
+        mw.moveToState("overview")  # geöffneter Stapel: sein Gebiet als Hintergrund
+        QTimer.singleShot(4000, schritt1b)
+
+    def schritt1b():
+        _foto(mw, "stapel-offen.png")
+        mw.web.evalWithCallback("document.getAnimations().length",
+                                lambda n: print("ANIMATIONEN Stapel", n, flush=True))
+        mw.moveToState("deckBrowser")
+        ansicht.zeigen()
+        QTimer.singleShot(6000, schritt2)
 
     def schritt2():
+        nonlocal w
+        w = ansicht._fenster
         _foto(w, "karte.png")
         w.web.eval("lernwald.zeigeGebiet(3)")
         QTimer.singleShot(2500, schritt3)
 
     def schritt3():
         _foto(w, "gebiet.png")
+        w.web.evalWithCallback("document.getAnimations().length",
+                               lambda n: print("ANIMATIONEN Gebiet", n, flush=True))
         w.web.eval("lernwald.zeigeAlbum()")
         QTimer.singleShot(2000, schritt4)
 
@@ -54,7 +73,7 @@ def _start():
         w.reject()
         mw.close()
 
-    QTimer.singleShot(6000, schritt2)
+    QTimer.singleShot(5000, schritt1)
 
 
 gui_hooks.profile_did_open.append(lambda: QTimer.singleShot(500, _start))

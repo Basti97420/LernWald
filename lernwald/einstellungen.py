@@ -14,7 +14,8 @@ from . import daten
 
 ARTEN = (("stapel", "Stapel"), ("schlagwort", "Schlagwort"), ("suche", "Suche"))
 THEMENTEXT = {"wald": "Wald – Bäume wachsen, Tiere ziehen ein",
-              "stadt": "Stadt – Dörfer wachsen zur Stadt, Sehenswürdigkeiten entstehen"}
+              "stadt": "Stadt – Dörfer wachsen zur Stadt, Sehenswürdigkeiten entstehen",
+              "tusche": "Tusche-Stadt – die Stadt als Kupferstich, schraffiert in Tusche"}
 
 
 class Einstellungen(QDialog):
@@ -79,6 +80,25 @@ class Einstellungen(QDialog):
         zeile.addWidget(self.max_baeume)
         zeile.addStretch()
         lay.addLayout(zeile)
+
+        zeile = QHBoxLayout()
+        self.hintergrund = QCheckBox("Karte als Hintergrund der Stapelübersicht zeigen, Deckkraft:")
+        self.hintergrund.setChecked(bool(self.cfg["hintergrund"]))
+        zeile.addWidget(self.hintergrund)
+        self.deckkraft = QSpinBox()
+        self.deckkraft.setRange(5, 100)
+        self.deckkraft.setSingleStep(5)
+        self.deckkraft.setSuffix(" %")
+        self.deckkraft.setValue(int(self.cfg["hintergrund_deckkraft"]))
+        self.deckkraft.setEnabled(self.hintergrund.isChecked())
+        self.hintergrund.toggled.connect(self.deckkraft.setEnabled)
+        zeile.addWidget(self.deckkraft)
+        zeile.addStretch()
+        lay.addLayout(zeile)
+
+        self.animationen = QCheckBox("Animationen: Vögel, Bewohner, Wolken, Wind und Wachsen beim Öffnen")
+        self.animationen.setChecked(bool(self.cfg["animationen"]))
+        lay.addWidget(self.animationen)
 
         box = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
         box.accepted.connect(self._speichern)
@@ -150,8 +170,14 @@ class Einstellungen(QDialog):
                                 parent=self):
             return
         self.cfg.update(thema=self.thema.currentData(), gebiete=gebiete,
-                        hauptstapel_automatisch=self.automatisch.isChecked(), max_baeume=self.max_baeume.value())
+                        hauptstapel_automatisch=self.automatisch.isChecked(), max_baeume=self.max_baeume.value(),
+                        hintergrund=self.hintergrund.isChecked(), hintergrund_deckkraft=self.deckkraft.value(),
+                        animationen=self.animationen.isChecked())
         mw.addonManager.writeConfig(__name__, self.cfg)
+        if mw.state == "deckBrowser":
+            mw.deckBrowser.refresh()
+        elif mw.state == "overview":
+            mw.overview.refresh()
         self.accept()
 
 

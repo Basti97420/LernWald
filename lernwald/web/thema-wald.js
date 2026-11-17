@@ -191,6 +191,28 @@
     return liste.map((p) => ({ x: p.x, y: p.y, s: tiefe(p.y) * dichte }));
   }
 
+  // Ausbau nach Lerntagen: je 3 Tage eine Blume auf der Lichtung, je 30 Tage eine Bank
+  function ausbau(tage, rnd, g) {
+    const farben = ["#f2d640", "#e86a8a", "#ffffff", "#9b7fd1", "#f08a3c"];
+    let vorne = "";
+    for (let i = 0; i < Math.min(60, Math.floor(tage / 3)); i++) {
+      const x = 10 + rnd() * (g.W - 20), y = g.H - g.WIESE + 10 + rnd() * (g.WIESE - 14);
+      vorne += `<g transform="translate(${f(x)},${f(y)})"><path d="M0,0 L0,-6" stroke="#4f8a3a" stroke-width=".9"/>` +
+        `<circle cx="0" cy="-7" r="2.2" fill="${farben[i % farben.length]}"/><circle cx="0" cy="-7" r=".8" fill="#c9a640"/></g>`;
+    }
+    for (let i = 0; i < Math.min(4, Math.floor(tage / 30)); i++) {
+      const x = (i + 0.5) * g.W / Math.min(4, Math.floor(tage / 30));
+      vorne += `<g transform="translate(${f(x)},${f(g.H - g.WIESE + 14)}) scale(1.3)">` +
+        `<path d="M-8,0 L-8,-5 M8,0 L8,-5" stroke="#5a3b22" stroke-width="1.2"/><rect x="-9" y="-6" width="18" height="2" fill="#7a5530"/></g>`;
+    }
+    return { vorne };
+  }
+
+  function ausbauText(tage) {
+    const blumen = Math.min(60, Math.floor(tage / 3)), baenke = Math.min(4, Math.floor(tage / 30));
+    return `${blumen} Blumen auf der Lichtung` + (baenke ? `, ${baenke} ${baenke === 1 ? "Bank" : "Bänke"}` : " (erste Bank ab 30 Lerntagen)");
+  }
+
   window.LW.themen.wald = {
     titel: "Lernwald",
     stufen: {
@@ -221,5 +243,10 @@
     groesse: () => "",
     plaetze,
     zentriert: false,
+    wiegen: true,  // Bäume wiegen sich im Wind (lernwald.js, bewegung.css)
+    ausbau,
+    ausbauText,
+    leuteText: "Wanderer",
+    pflasterTitel: "Waldweg",
   };
 })();

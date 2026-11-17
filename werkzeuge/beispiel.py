@@ -57,7 +57,40 @@ def befuellen(col, saat=1):
                         ("Keyence", "Keyence_XG"), ("OpenSCAD", "KeyenceAXG"),
                         ("Englisch", "Sprachen::Englisch"), ("Spanisch", "Sprachen::Spanisch")):
         col.tags.bulk_add(col.find_notes('deck:"%s"' % stapel), tag)
+    wiederholungen_anlegen(col, rnd)
     return col
+
+
+# Lernverlauf je Stapel: (Trefferquote, Tage seit dem letzten Lernen)
+VERLAUF = {"Chemie": (0.72, 20), "Geschichte": (0.78, 3), "Spanisch": (None, None)}
+
+
+def wiederholungen_anlegen(col, rnd, tage=240):
+    """revlog füllen: an den meisten Tagen gelernt, die letzten 23 Tage ohne Lücke."""
+    cutoff = col.sched.day_cutoff
+    gelernt = [t for t in range(tage) if t < 23 or rnd.random() < 0.7]
+    zeilen = []
+    for name, *_ in STAPEL:
+        quote, pause = VERLAUF.get(name, (0.9, 0))
+        if quote is None:
+            continue
+        cids = col.find_cards('deck:"%s" -is:new' % name)
+        for t in gelernt:
+            if t < pause:
+                continue
+            for k in range(rnd.randint(3, 12)):
+                stunde = rnd.choice((7, 8, 12, 19, 20, 21))
+                rid = int((cutoff - (t + 1) * 86400 + (stunde - 4) * 3600 + rnd.random() * 3000) * 1000)
+                typ = 0 if rnd.random() < 0.1 else 1
+                ease = 1 if rnd.random() > quote else rnd.choice((2, 3, 3, 3, 4))
+                zeilen.append((rid, rnd.choice(cids), ease, typ, rnd.randint(3000, 15000)))
+    zeilen.sort()
+    vorher = 0
+    for rid, cid, ease, typ, dauer in zeilen:
+        rid = max(rid, vorher + 1)  # IDs eindeutig
+        vorher = rid
+        col.db.execute("insert into revlog (id, cid, usn, ease, ivl, lastIvl, factor, time, type) "
+                       "values (?, ?, -1, ?, 1, 1, 2500, ?, ?)", rid, cid, ease, dauer, typ)
 
 
 if __name__ == "__main__":

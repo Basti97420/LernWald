@@ -347,6 +347,66 @@
       ` stroke="#ddd2b4" stroke-width="${f(Math.max(4, R * 0.06))}" fill="none" stroke-linecap="round"/>`;
   }
 
+  // --- Ausbau nach Lerntagen ------------------------------------------------
+  // Jeder Lerntag im Gebiet baut mit: Laternen (je 7 Tage), Bänke (je 30), ab 100 eine Stadtmauer,
+  // ab 200 ein Aquädukt am Horizont.
+
+  function laterne() {
+    return `<path d="M0,0 L0,-26" stroke="#3d342b" stroke-width="1.4"/><path d="M-3,-26 L3,-26 L2,-32 L-2,-32 Z" fill="#f2d68a" class="lw-licht"/>` +
+      `<path d="M-3.5,-32 L0,-35 L3.5,-32 Z" fill="#3d342b"/>`;
+  }
+
+  function bank() {
+    return `<path d="M-8,0 L-8,-4 M8,0 L8,-4 M-8,-4 L-8,-9 M8,-4 L8,-9" stroke="${BALKEN}" stroke-width="1.1"/>` +
+      rect(-9, -5, 18, 1.6, HOLZ) + rect(-9, -9.5, 18, 1.6, HOLZ);
+  }
+
+  function mauer(g, breite) {
+    const y = g.HORIZONT + 18, links = g.W / 2 - breite / 2 - 30, rechts = g.W / 2 + breite / 2 + 30;
+    let s = rect(links, y - 14, rechts - links, 14, "#c2b8a6") + zinnen(links, y - 14, rechts - links, "#c2b8a6");
+    for (let x = links; x <= rechts + 1; x += (rechts - links) / 4) {
+      s += rect(x - 6, y - 26, 12, 26, "#b9ae9a") + zinnen(x - 6, y - 26, 12, "#b9ae9a") + rect(x - 1, y - 20, 2, 5, "#3d342b");
+    }
+    return s;
+  }
+
+  function aquaedukt(g) {
+    const y = g.HORIZONT + 4, h = 34, w = 18;
+    let s = "";
+    for (const [von, bis] of [[20, 300], [700, 980]]) {
+      s += rect(von, y - h - 5, bis - von, 5, "#cbbf9f");
+      for (let x = von; x + w <= bis; x += w) s += rect(x, y - h, w, h, "#d8cdb2") + bogen(x + 3, y, w - 6, h - 6, "#9a8f78");
+      for (let x = von; x + w / 2 <= bis; x += w / 2) s += rect(x + 1.5, y - h - 13, w / 2 - 3, 8, "#d8cdb2") + bogen(x + 3, y - h - 5, w / 2 - 6, 7, "#9a8f78");
+    }
+    return s;
+  }
+
+  function ausbau(tage, rnd, g) {
+    let hinten = "", vorne = "";
+    if (tage >= 200) hinten += aquaedukt(g);
+    if (tage >= 100) hinten += mauer(g, Math.min(g.W - 140, 420));
+    const yv = g.H - g.WIESE + 12;
+    const laternen = Math.min(16, Math.floor(tage / 7)), baenke = Math.min(6, Math.floor(tage / 30));
+    for (let i = 0; i < laternen; i++) {
+      vorne += `<g transform="translate(${f((i + 0.5) * g.W / laternen)},${f(yv)}) scale(1.3)">${laterne()}</g>`;
+    }
+    for (let i = 0; i < baenke; i++) {
+      vorne += `<g transform="translate(${f((i + 0.5 + (rnd() - 0.5) * 0.3) * g.W / baenke)},${f(yv + 6)}) scale(1.3)">${bank()}</g>`;
+    }
+    return { hinten, vorne };
+  }
+
+  function ausbauText(tage) {
+    const teile = [];
+    if (tage >= 7) teile.push(`${Math.min(16, Math.floor(tage / 7))} Laternen`);
+    if (tage >= 30) teile.push(`${Math.min(6, Math.floor(tage / 30))} Bänke`);
+    if (tage >= 100) teile.push("Stadtmauer");
+    if (tage >= 200) teile.push("Aquädukt");
+    const naechstes = tage < 7 ? "erste Laterne ab 7" : tage < 30 ? "erste Bank ab 30" : tage < 100 ? "Stadtmauer ab 100" :
+      tage < 200 ? "Aquädukt ab 200" : "";
+    return (teile.length ? "gebaut: " + teile.join(", ") : "noch nichts gebaut") + (naechstes ? ` (${naechstes} Lerntagen)` : "");
+  }
+
   window.LW.themen.stadt = {
     titel: "Lernstadt",
     stufen: {
@@ -384,5 +444,9 @@
     vorne,
     kartenDeko,
     zentriert: true,
+    ausbau,
+    ausbauText,
+    leuteText: "Bewohner",
+    pflasterTitel: "Pflasterstraße",
   };
 })();
