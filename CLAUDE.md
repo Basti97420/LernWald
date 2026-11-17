@@ -19,5 +19,6 @@ Aufbau, Befehle, Regeln für die Stufen und wie ein neues Thema dazukommt stehen
 - Das Add-on-Verzeichnis heißt nach Installation aus AnkiWeb wie die Nummer des Add-ons: Pfade nur über
   `__name__` / `addonFromModule` bilden, nie fest auf `lernwald`.
 - Anki-Bibliotheken nur in der `.venv` (`requirements-dev.txt`).
-- Remote: noch keins. Ein GitHub-Repo muss der Nutzer anlegen (kein `gh` auf der VM); geplant
-  `git@github.com:Basti97420/LernWald` (siehe `homepage` in `manifest.json`).
+- GitHub: <https://github.com/Basti97420/LernWald> (Remote `github` auf der VM, `git@github.com:…`).
+  Pushen nur von der VM aus, der Mac hat keine GitHub-Zugangsdaten: Commit vom Mac mit
+  `git push origin main:vom-mac` auf die VM, dort `git merge --ff-only vom-mac` und `git push github main`.
