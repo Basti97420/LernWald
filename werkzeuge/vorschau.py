@@ -20,8 +20,10 @@ def main(ziel, cfg=None):
     album = {t: "2026-11-0%d" % (i % 7 + 1) for i, t in enumerate(wald["gesichtet"])}
     wald.update(album=album, neu=wald["gesichtet"][-2:])
     web = os.path.join(HIER, "..", "lernwald", "web")
-    with open(os.path.join(web, "lernwald.css"), encoding="utf-8") as f:
-        css = f.read()
+    css = ""
+    for name in ("lernwald.css", "bewegung.css"):
+        with open(os.path.join(web, name), encoding="utf-8") as f:
+            css += f.read() + "\n"
     from lernwald.ansicht import SKRIPTE
     js = ""
     for name in SKRIPTE:

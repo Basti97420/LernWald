@@ -46,6 +46,18 @@
 #lernwald .lw-regen { animation: lw-regen .45s linear infinite; }
 @keyframes lw-regen { from { transform: translate(0, 0); } to { transform: translate(-6px, 20px); } }
 
+/* Stadt: Kutschen und Straßenbahn fahren durch, Züge fahren vorbei und dann ist eine Weile Ruhe,
+   Räder drehen sich, Dampf steigt aus der Lok */
+#lernwald .lw-fahren { animation: lw-fahren linear infinite; }
+@keyframes lw-fahren { from { transform: translateX(0); } to { transform: translateX(var(--weg)); } }
+#lernwald .lw-zug { animation: lw-zug linear infinite; }
+@keyframes lw-zug { 0% { transform: translateX(0); } 60%, 100% { transform: translateX(var(--weg)); } }
+#lernwald .lw-rad { animation: lw-rad .9s linear infinite; transform-box: fill-box; transform-origin: 50% 50%; }
+@keyframes lw-rad { to { transform: rotate(360deg); } }
+#lernwald .lw-dampf { animation: lw-dampf 1.6s ease-out infinite; transform-box: fill-box; transform-origin: 50% 50%; }
+@keyframes lw-dampf { from { transform: translate(0, 0) scale(.6); opacity: .9; }
+  to { transform: translate(-14px, -16px) scale(2.2); opacity: 0; } }
+
 /* Beim Öffnen eines Gebiets wachsen Bäume bzw. Häuser nacheinander aus dem Boden */
 #lernwald .lw-wachsen { animation: lw-wachsen .7s cubic-bezier(.2, .9, .3, 1.25) both;
   transform-box: fill-box; transform-origin: 50% 100%; }

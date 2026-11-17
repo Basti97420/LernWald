@@ -54,6 +54,10 @@ def _start():
         _foto(w, "gebiet.png")
         w.web.evalWithCallback("document.getAnimations().length",
                                lambda n: print("ANIMATIONEN Gebiet", n, flush=True))
+        QTimer.singleShot(4000, schritt3b)
+
+    def schritt3b():
+        _foto(w, "gebiet-spaeter.png")  # 4 Sekunden später: Züge, Kutschen und Leute sind weitergezogen
         w.web.eval("lernwald.zeigeAlbum()")
         QTimer.singleShot(2000, schritt4)
 

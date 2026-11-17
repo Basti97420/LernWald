@@ -181,7 +181,7 @@
   // Ein Gebiet als Bild. wachsen: Bäume bzw. Häuser wachsen beim Öffnen nacheinander aus dem Boden
   function szene(i, wachsen) {
     const g = D.gebiete[i], rnd = zufall(hash(g.name) ^ 0x9e37);
-    const geo = { W: 1000, H: 620, HORIZONT: 190, WIESE: 90, zustand: g.zustand };  // vorne bleibt Platz für Tiere bzw. Bauten
+    const geo = { W: 1000, H: 620, HORIZONT: 190, WIESE: 90, zustand: g.zustand, reif: g.zahlen.baum + g.zahlen.alt };  // vorne bleibt Platz für Tiere bzw. Bauten
     const { W, H, HORIZONT, WIESE } = geo;
     const boden = T.boden[g.zustand];
     const c = g.chronik || {};
@@ -191,6 +191,8 @@
     const n = g.baeume.length;
     const plaetze = T.plaetze(g.baeume, rnd, geo);
     const dinge = g.baeume.map((b, k) => Object.assign({ b }, plaetze[k]));
+    // Einwohner und Fahrzeuge des Themas (Stadt), der Tiefe nach zwischen die Häuser einsortiert
+    (T.leben ? T.leben(geo, plaetze, rnd) : []).forEach((e) => dinge.push({ x: e.x, y: e.y, s: e.s, roh: e.mensch ? geher(rnd, e.weg) : e.roh }));
     const belohnungen = (g.belohnungen || []).map((t, k, alle) =>
       ({ t, x: (k + 0.5 + (rnd() - 0.5) * 0.5) * W / alle.length, y: H - WIESE * 0.45 + rnd() * WIESE * 0.3, s: T.belohnungGroesse }));
     let s = `<defs><linearGradient id="himmel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${himmel[0]}"/><stop offset="1" stop-color="${himmel[1]}"/></linearGradient>
@@ -207,7 +209,11 @@
     const alle = dinge.sort((a, b) => a.y - b.y).concat(belohnungen.sort((a, b) => a.y - b.y));
     const jedes = Math.max(1, Math.ceil(n / 120));  // höchstens rund 120 Bäume wiegen sich, sonst wird es zäh
     alle.forEach((d, k) => {
-      let bild = d.t ? T.belohnung(d.t) : T.bild(d.b[0], d.b[1], rnd);
+      let bild = d.roh || (d.t ? T.belohnung(d.t) : T.bild(d.b[0], d.b[1], rnd));
+      if (d.roh) {
+        s += `<g transform="translate(${f(d.x)},${f(d.y)}) scale(${f(d.s)})">${bild}</g>`;
+        return;
+      }
       if (T.wiegen && !d.t && k % jedes === 0) bild = `<g class="lw-wiegen" style="${dauer(4 + rnd() * 3, rnd)}">${bild}</g>`;
       if (wachsen) bild = `<g class="lw-wachsen" style="animation-delay:${f(0.1 + 1.4 * k / Math.max(1, alle.length))}s">${bild}</g>`;
       s += `<g transform="translate(${f(d.x)},${f(d.y)}) scale(${f(d.s)})">${bild}</g>`;
@@ -217,10 +223,7 @@
     const leute = [];
     for (let k = 0; k < Math.min(30, c.heute || 0); k++) leute.push({ x: 20 + rnd() * (W - 40), y: H - WIESE + 16 + rnd() * (WIESE - 22) });
     leute.sort((a, b) => a.y - b.y).forEach((p) => {
-      const figurBild = T.bewohner ? T.bewohner(rnd) : figur(rnd);
-      s += `<g transform="translate(${f(p.x)},${f(p.y)}) scale(1.5)${rnd() < 0.5 ? " scale(-1,1)" : ""}">` +
-        `<g class="lw-gehen" style="--weg:${f(15 + rnd() * 35)}px;${dauer(14 + rnd() * 16, rnd)}">` +
-        `<g class="lw-wippen" style="${dauer(0.5 + rnd() * 0.2, rnd)}">${figurBild}</g></g></g>`;
+      s += `<g transform="translate(${f(p.x)},${f(p.y)}) scale(1.5)">${geher(rnd, 15 + rnd() * 35)}</g>`;
     });
     if ((c.serie || 0) >= 7) s += wimpel(geo, rnd);
     if (wetter === "regen") s += regen(geo, rnd);
@@ -243,6 +246,7 @@
       ${svg}
       <div class="gebietinfo"><table>${zeilen}<tr><td>${symbol(T.bild("jung", 1, zufall(5)))}</td><td>davon fällig: ${T.welk.split(" – ")[0]}</td><td class="zahl">${g.welk}</td></tr></table>
       <div><p>${namen ? T.hier(namen) : g.zustand === "gesund" ? T.nochKeine(D.min_reife) : T.nurGesund}</p>
+      ${T.lebenText ? `<p>${T.lebenText({ zustand: g.zustand, reif: z.baum + z.alt })}</p>` : ""}
       ${gebietChronik(c, wetter, zeit)}
       ${n < g.karten ? `<p class="klein">Gezeichnet: ${n} von ${g.karten} Karten (gleichmäßig ausgewählt).</p>` : ""}</div></div>`;
     binden();
@@ -253,6 +257,13 @@
 
   function dauer(sek, rnd) {
     return `animation-duration:${f(sek)}s;animation-delay:-${f(rnd() * sek)}s`;
+  }
+
+  // Jemand geht hin und her (Richtung zufällig) und wippt dabei
+  function geher(rnd, weg) {
+    const bild = T.bewohner ? T.bewohner(rnd) : figur(rnd);
+    return `<g${rnd() < 0.5 ? ' transform="scale(-1,1)"' : ""}><g class="lw-gehen" style="--weg:${f(weg)}px;${dauer(14 + rnd() * 16, rnd)}">` +
+      `<g class="lw-wippen" style="${dauer(0.5 + rnd() * 0.2, rnd)}">${bild}</g></g></g>`;
   }
 
   // Vögel ziehen mit Flügelschlag von links nach rechts über einen Streifen (x, y, Breite, Höhe)
