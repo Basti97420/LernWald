@@ -36,6 +36,25 @@ Einstellungen; bei „weniger Bewegung“ im System steht alles still.
 Öffnen über **Werkzeuge → Lernwald** oder den Knopf in der oberen Leiste. Einstellungen über den Knopf im
 Fenster oder **Werkzeuge → Add-ons → Lernwald → Einstellungen**.
 
+### Stadt von oben
+
+Die Stadt (und die Tusche-Stadt) zeigt ein Gebiet isometrisch von oben (`web/iso-stadt.js`): Vom Marktplatz
+mit den Sehenswürdigkeiten wächst sie in alle Richtungen, Häuser stehen auf Parzellen zwischen einem
+Straßengitter (jede dritte Reihe ist Straße), die größten in der Mitte. Mausrad zoomt, Ziehen verschiebt,
+Doppelklick stellt zurück. Nachts leuchten Fenster. Mit der Zahl reifer Häuser wächst das Leben:
+
+| reife Häuser | dazu |
+|---|---|
+| immer | Einwohner auf den Straßen, je größer die Stadt, desto mehr (höchstens 70), dazu die Wiederholungen von heute |
+| ab 15 (Dorf) | gepflasterte Straßen mit Kutschen |
+| ab 60 (Kleinstadt) | Eisenbahn hinter der Stadt |
+| ab 150 (Stadt) | Straßenbahn auf den Hauptstraßen, Bahnhof, längere Züge |
+| ab 300 (Großstadt) | zweiter Zug in Gegenrichtung, dichter Verkehr |
+
+Die Lerntage bauen wie bisher Laternen, Bänke, Stadtmauer (im Quadrat mit Toren und Ecktürmen) und Aquädukt.
+Fahrzeuge fahren jeweils zwei Blöcke weit und tauchen an den Enden auf und ab, damit sie richtig zwischen
+den Häusern liegen. Die letzte Fassung als Seitenansicht ist Commit `8be8de6`.
+
 ### Tusche-Stadt
 
 Drittes Thema: dieselbe Stadt, gezeichnet wie ein Kupferstich (Vorbild für den Stil: Capriccio von emollick,
@@ -71,14 +90,16 @@ Alle Grafiken sind SVG, im Code gezeichnet, keine fremden Bilder.
   - `einstellungen.py` – Dialog für Thema und Gebiete
   - `web/grundlagen.js` – gemeinsame Hilfen; `web/thema-wald.js`, `web/thema-stadt.js` – Zeichnungen, Texte
     und Anordnung je Thema; `web/thema-tusche.js` – zeichnet die Stadt als Kupferstich nach (`nachbearbeiten`,
-    `defs`); `web/lernwald.js` – Karte, Gebiet, Chronik, Album, Wetter und Bewohner
+    `defs`); `web/iso-stadt.js` – die Stadt von oben (`szene`); `web/lernwald.js` – Karte, Gebiet, Chronik,
+    Album, Wetter und Bewohner, Zoomen
 - `werkzeuge/` – Beispielsammlung, HTML-Vorschau, Paketieren, Test-Add-on für ein echtes Anki
 - `tests/` – Tests für `daten.py`
 
 Ein neues Thema braucht einen Eintrag in `THEMEN` (`daten.py`, Belohnungen mit Kennungen, die es noch nicht
 gibt), eine Datei `web/thema-NAME.js` mit denselben Feldern wie `thema-wald.js`, einen Eintrag in `SKRIPTE`
 (`ansicht.py`) und einen Text in `THEMENTEXT` (`einstellungen.py`). Optional: `ausbau`, `ausbauText`,
-`bewohner`, `leuteText`, `pflasterTitel`, `nachbearbeiten` und `defs` (siehe `thema-tusche.js`).
+`bewohner`, `leuteText`, `pflasterTitel`, `nachbearbeiten` und `defs` (siehe `thema-tusche.js`), `szene` für
+eine eigene Ansicht eines Gebiets (siehe `iso-stadt.js`, dann entfallen `plaetze`, `vorne` und `ausbau`).
 
 ## Entwickeln
 

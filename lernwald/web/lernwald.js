@@ -56,7 +56,36 @@
       else zeigeKarte();
     }));
     einpassen();
+    root.querySelectorAll("svg.von-oben").forEach(zoomen);
     root.querySelectorAll("[data-gebiet]").forEach((el) => el.addEventListener("click", () => zeigeGebiet(+el.dataset.gebiet)));
+  }
+
+  // Ansicht von oben: Mausrad zoomt zur Maus hin, Ziehen verschiebt, Doppelklick stellt zurück
+  function zoomen(svg) {
+    const vb = svg.viewBox.baseVal, start = [vb.x, vb.y, vb.width, vb.height];
+    const punkt = (e) => {
+      const p = svg.createSVGPoint();
+      p.x = e.clientX; p.y = e.clientY;
+      return p.matrixTransform(svg.getScreenCTM().inverse());
+    };
+    svg.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const k = Math.pow(1.0015, e.deltaY), breite = grenze(vb.width * k, start[2] / 6, start[2] * 2.5);
+      const p = punkt(e), q = breite / vb.width;
+      vb.x = p.x - (p.x - vb.x) * q; vb.y = p.y - (p.y - vb.y) * q;
+      vb.width = breite; vb.height *= q;
+    }, { passive: false });
+    let griff = null;
+    svg.addEventListener("pointerdown", (e) => { griff = punkt(e); svg.setPointerCapture(e.pointerId); svg.classList.add("zieht"); });
+    svg.addEventListener("pointermove", (e) => {
+      if (!griff) return;
+      const p = punkt(e);
+      vb.x -= p.x - griff.x; vb.y -= p.y - griff.y;
+    });
+    const los = () => { griff = null; svg.classList.remove("zieht"); };
+    svg.addEventListener("pointerup", los);
+    svg.addEventListener("pointercancel", los);
+    svg.addEventListener("dblclick", () => { [vb.x, vb.y, vb.width, vb.height] = start; });
   }
 
   // --- Gesamtkarte ----------------------------------------------------------
@@ -181,18 +210,23 @@
   // Ein Gebiet als Bild. wachsen: Bäume bzw. Häuser wachsen beim Öffnen nacheinander aus dem Boden
   function szene(i, wachsen) {
     const g = D.gebiete[i], rnd = zufall(hash(g.name) ^ 0x9e37);
-    const geo = { W: 1000, H: 620, HORIZONT: 190, WIESE: 90, zustand: g.zustand, reif: g.zahlen.baum + g.zahlen.alt };  // vorne bleibt Platz für Tiere bzw. Bauten
-    const { W, H, HORIZONT, WIESE } = geo;
-    const boden = T.boden[g.zustand];
     const c = g.chronik || {};
     const zeit = D.chronik ? D.chronik.tageszeit : null;
     const wetter = c.quote == null ? "sonne" : c.quote >= 90 ? "sonne" : c.quote >= 80 ? "wolken" : "regen";
+    if (T.szene) {  // eigene Ansicht des Themas: die Stadt von oben (iso-stadt.js)
+      const iso = T.szene(g, { rnd, zeit, wetter, c, wachsen, hilfen: { dauer, figur, voegel } });
+      const fuellen = root.classList.contains("lw-hintergrund") ? "slice" : "meet";
+      const grund = T.nachbearbeiten ? "#f4ecd8" : iso.grund;
+      return { svg: `<svg class="szene von-oben" viewBox="${iso.viewBox}" preserveAspectRatio="xMidYMid ${fuellen}" style="background:${grund}">` +
+        `<g class="zeichnung">${N(iso.svg)}</g></svg>`, n: g.baeume.length, c, wetter, zeit };
+    }
+    const geo = { W: 1000, H: 620, HORIZONT: 190, WIESE: 90, zustand: g.zustand };  // vorne bleibt Platz für Tiere bzw. Bauten
+    const { W, H, HORIZONT, WIESE } = geo;
+    const boden = T.boden[g.zustand];
     const himmel = g.zustand === "verwildert" || wetter === "regen" ? ["#c9cbc4", "#e6e2d4"] : HIMMEL[zeit] || HIMMEL.tag;
     const n = g.baeume.length;
     const plaetze = T.plaetze(g.baeume, rnd, geo);
     const dinge = g.baeume.map((b, k) => Object.assign({ b }, plaetze[k]));
-    // Einwohner und Fahrzeuge des Themas (Stadt), der Tiefe nach zwischen die Häuser einsortiert
-    (T.leben ? T.leben(geo, plaetze, rnd) : []).forEach((e) => dinge.push({ x: e.x, y: e.y, s: e.s, roh: e.mensch ? geher(rnd, e.weg) : e.roh }));
     const belohnungen = (g.belohnungen || []).map((t, k, alle) =>
       ({ t, x: (k + 0.5 + (rnd() - 0.5) * 0.5) * W / alle.length, y: H - WIESE * 0.45 + rnd() * WIESE * 0.3, s: T.belohnungGroesse }));
     let s = `<defs><linearGradient id="himmel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${himmel[0]}"/><stop offset="1" stop-color="${himmel[1]}"/></linearGradient>
@@ -209,11 +243,7 @@
     const alle = dinge.sort((a, b) => a.y - b.y).concat(belohnungen.sort((a, b) => a.y - b.y));
     const jedes = Math.max(1, Math.ceil(n / 120));  // höchstens rund 120 Bäume wiegen sich, sonst wird es zäh
     alle.forEach((d, k) => {
-      let bild = d.roh || (d.t ? T.belohnung(d.t) : T.bild(d.b[0], d.b[1], rnd));
-      if (d.roh) {
-        s += `<g transform="translate(${f(d.x)},${f(d.y)}) scale(${f(d.s)})">${bild}</g>`;
-        return;
-      }
+      let bild = d.t ? T.belohnung(d.t) : T.bild(d.b[0], d.b[1], rnd);
       if (T.wiegen && !d.t && k % jedes === 0) bild = `<g class="lw-wiegen" style="${dauer(4 + rnd() * 3, rnd)}">${bild}</g>`;
       if (wachsen) bild = `<g class="lw-wachsen" style="animation-delay:${f(0.1 + 1.4 * k / Math.max(1, alle.length))}s">${bild}</g>`;
       s += `<g transform="translate(${f(d.x)},${f(d.y)}) scale(${f(d.s)})">${bild}</g>`;

@@ -5,7 +5,7 @@
 // gesunde Gebiete bekommen Sehenswürdigkeiten.
 (function () {
   "use strict";
-  const { f, wahl, grenze, schatten, RANG } = window.LW;
+  const { f, wahl, schatten } = window.LW;
 
   const WAND = ["#efe3c8", "#e8d5b0", "#f3ead8", "#dcc7a4", "#eadbc8", "#d9c3b0"];
   const DACH = ["#b5462f", "#a33d2a", "#8c4a32", "#c0623a", "#6b5f5a"];
@@ -264,208 +264,12 @@
     },
   };
 
-  // --- Anordnung: Häuser in Reihen, die größten in der Mitte ----------------
-
-  function plaetze(baeume, rnd, g) {
-    const n = baeume.length;
-    const liste = [];
-    if (!n) return liste;
-    const reihen = grenze(Math.round(Math.sqrt(n / 6)), 1, 8);
-    const breite = Math.min(g.W - 60, Math.sqrt(n) * 45 + 80);  // ein Dorf bleibt schmal in der Mitte
-    const vorn = g.H - g.WIESE - 4, hinten = g.HORIZONT + 28;
-    const abstandY = reihen > 1 ? Math.min(56, (vorn - hinten) / (reihen - 1)) : 0;
-    const tiefe = (y) => 0.6 + ((y - g.HORIZONT) / (g.H - g.HORIZONT)) * 0.7;
-    // Reihen nach hinten schmaler (Perspektive); Häuser je Reihe nach Breite verteilen
-    const reihe = [];
-    for (let j = 0; j < reihen; j++) {
-      const t = reihen > 1 ? j / (reihen - 1) : 0;
-      reihe.push({ j, y: vorn - abstandY * (reihen - 1) * Math.pow(t, 0.85), b: breite * (1 - 0.3 * t) });
-    }
-    const summe = reihe.reduce((a, r) => a + r.b, 0);
-    let rest = n;
-    reihe.forEach((r, j) => {
-      r.anzahl = j === reihen - 1 ? rest : Math.min(rest, Math.max(1, Math.round(n * r.b / summe)));
-      rest -= r.anzahl;
-    });
-    const pos = [];
-    for (const r of reihe) {
-      if (r.anzahl <= 0) continue;
-      const luecken = Array.from({ length: r.anzahl }, () => 0.55 + rnd() * 0.9);  // unregelmäßige Abstände
-      const gesamt = luecken.reduce((a, x) => a + x, 0);
-      const dx = r.b / r.anzahl, groesse = grenze(dx / 22, 0.5, 1.4);
-      let x = g.W / 2 - r.b / 2;
-      luecken.forEach((l) => {
-        x += (l / gesamt) * r.b;
-        const px = x - (l / gesamt) * r.b / 2, py = r.y + (rnd() - 0.5) * 4;
-        const ax = (px - g.W / 2) / (breite / 2), ay = reihen > 1 ? (r.j - (reihen - 1) / 2) / (reihen / 2) : 0;
-        pos.push({ x: px, y: py, s: tiefe(py) * groesse, d: Math.hypot(ax, ay * 0.7) + rnd() * 0.15, j: r.j });
-      });
-    }
-    pos.sort((a, b) => a.d - b.d);
-    const ordnung = baeume.map((b, i) => ({ i, rang: RANG[b[0]] + rnd() * 0.9 })).sort((a, b) => a.rang - b.rang);
-    ordnung.forEach((o, k) => { liste[o.i] = pos[k]; });
-    // schmale Gassen vor den Häuserreihen
-    let deko = "";
-    const gassen = [];  // für die Einwohner, die dort gehen
-    for (const r of reihe) {
-      const hier = pos.filter((p) => p.j === r.j);
-      if (!hier.length) continue;
-      const links = Math.min(...hier.map((p) => p.x)) - 14, rechts = Math.max(...hier.map((p) => p.x)) + 14;
-      deko += rect(links, r.y + 2, rechts - links, 4.5 * tiefe(r.y), "#ddd2b6", ` rx="2" opacity=".7"`);
-      gassen.push({ y: r.y + 2 + 4.5 * tiefe(r.y) * 0.6, links, rechts, s: tiefe(r.y) });
-    }
-    liste.gassen = gassen;
-    // Bäume rund um den Ort (hinter und neben den Häusern, darum vor ihnen gezeichnet)
-    const baum = window.LW.themen.wald && window.LW.themen.wald.bild;
-    if (baum) {
-      const baeumeRund = [];
-      const oben = reihe[reihe.length - 1].y - 10, bOben = reihe[reihe.length - 1].b;
-      for (let k = 0; k < 40; k++) {
-        const y = g.HORIZONT + 6 + rnd() * (vorn - g.HORIZONT - 6);
-        const x = 15 + rnd() * (g.W - 30);
-        const halb = y < oben ? 0 : (breite * (1 - 0.3 * (vorn - y) / Math.max(vorn - hinten, 1))) / 2 + 25;
-        if (y >= oben && Math.abs(x - g.W / 2) < halb) continue;  // nicht mitten in den Ort
-        if (y < oben && Math.abs(x - g.W / 2) < bOben / 2 && y > oben - 30) continue;
-        baeumeRund.push({ x, y, art: rnd() < 0.5 ? "baum" : "jung" });
-      }
-      baeumeRund.sort((a, b) => a.y - b.y).forEach((b) => {
-        deko += `<g transform="translate(${f(b.x)},${f(b.y)}) scale(${f(tiefe(b.y) * 0.8)})">${baum(b.art, g.zustand === "verwildert" ? 1 : 0, rnd)}</g>`;
-      });
-    }
-    liste.deko = deko;
-    return liste;
-  }
-
-  function vorne(g) {  // gepflasterter Platz für die Sehenswürdigkeiten, ab dem Dorf mit Hauptstraße
-    let s = rect(0, g.H - g.WIESE + 8, g.W, g.WIESE, "#d9cfb8");
-    const r = window.LW.zufall(11);
-    for (let i = 0; i < 220; i++) {
-      s += `<ellipse cx="${f(r() * g.W)}" cy="${f(g.H - g.WIESE + 12 + r() * (g.WIESE - 8))}" rx="${f(2 + r() * 2)}" ry="1.1" fill="#c9bea4"/>`;
-    }
-    if (g.reif >= VERKEHR[0][0] && g.zustand !== "wiese") s += strasse(g);
-    return s;
-  }
-
-  // --- Verkehr und Einwohner: wächst mit der Zahl reifer Häuser -------------
-  // Bewegung wie in bewegung.css (lw-fahren, lw-zug, lw-dampf, lw-rad, lw-gehen)
+  // --- Verkehr und Einwohner: wächst mit der Zahl reifer Häuser (gezeichnet in iso-stadt.js) ---
 
   const VERKEHR = [
     [15, "Hauptstraße mit Kutschen"], [60, "Eisenbahn"], [150, "Straßenbahn und Bahnhof"], [300, "zweiter Zug, dichter Verkehr"],
   ];
-  const bewegt = (sek, r) => `animation-duration:${f(sek)}s;animation-delay:-${f(r() * sek)}s`;
-  const strasseY = (g) => g.H - g.WIESE + 9;  // Oberkante der Hauptstraße
-  const rad = (x, y, r, farbe) => `<g transform="translate(${f(x)},${f(y)})"><g class="lw-rad">` +
-    `<circle r="${f(r)}" fill="none" stroke="${farbe}" stroke-width="${f(r * 0.35)}"/>` +
-    `<path d="M${f(-r)},0 L${f(r)},0 M0,${f(-r)} L0,${f(r)}" stroke="${farbe}" stroke-width=".5"/></g></g>`;
-
-  function strasse(g) {
-    const y = strasseY(g), r = window.LW.zufall(5);
-    let s = rect(-10, y, g.W + 20, 17, "#bfb39c") + rect(-10, y, g.W + 20, 1.4, "#9d917a") + rect(-10, y + 16, g.W + 20, 1.4, "#9d917a");
-    for (let i = 0; i < 170; i++) s += rect(r() * g.W, y + 2 + r() * 13, 3 + r() * 2, 0.9, "#ab9f88");
-    if (g.reif >= VERKEHR[2][0]) s += rect(-10, y + 11.5, g.W + 20, 0.8, "#6f665a") + rect(-10, y + 14.5, g.W + 20, 0.8, "#6f665a");
-    return s;
-  }
-
-  function oberleitung(g) {  // Masten und Fahrdraht der Straßenbahn
-    let s = `<path d="M-10,-25 L${g.W + 10},-25" stroke="#3d342b" stroke-width=".6"/>`;
-    for (let x = 40; x < g.W; x += 130) s += `<path d="M${x},14 L${x},-27 M${x},-25 L${x + 6},-25" stroke="#4a4038" stroke-width="1.3"/>`;
-    return s;
-  }
-
-  function kutsche(r) {  // nach rechts gewandt, Ursprung am Boden
-    const farbe = wahl(r, ["#7a2e22", "#2f4f6b", "#3d5a3a", "#5a3b22"]);
-    return schatten(15) +
-      `<path d="M7,-9 Q9,-13.5 15,-12.5 L18,-16 L20,-15 L18.5,-10.5 Q17,-7.5 14,-7.5 L9,-7.5 Z" fill="#7b5634"/>` +
-      `<path d="M9,-8 L8.5,0 M11.5,-8 L12,0 M14,-8 L14.8,0 M16,-8 L17,0" stroke="#5a3b22" stroke-width="1"/>` +
-      `<path d="M7,-12.5 Q5,-10 6,-7" stroke="#3d342b" stroke-width=".8" fill="none"/>` +
-      `<path d="M2,-8 L9,-9.5" stroke="#3d342b" stroke-width=".8"/>` +
-      rect(-15, -16, 17, 10, farbe, ` rx="1.5"`) + rect(-13, -14.3, 5, 4.2, GLAS) + rect(-7, -14.3, 5, 4.2, GLAS) +
-      rect(-16, -17.6, 19, 1.8, "#3d342b") + `<circle cx="1" cy="-18.5" r="1.4" fill="#e9c9a8"/>` +
-      rad(-11.5, -3, 3, "#3d342b") + rad(-1.5, -3, 3, "#3d342b");
-  }
-
-  function tram() {
-    let s = schatten(22) + rect(-21, -18, 42, 14, "#c8322b", ` rx="2.5"`) + rect(-21, -9.5, 42, 3, "#efe3c8") +
-      rect(-22, -19.6, 44, 2.2, "#6b5f5a", ` rx="1"`) +
-      `<path d="M-4,-19.6 L1,-26 L5,-26 M1,-26 L-2,-23" stroke="#3d342b" stroke-width=".8" fill="none"/>`;
-    for (let i = 0; i < 5; i++) s += rect(-18 + i * 7.4, -16, 5.4, 5, GLAS);
-    return s + rad(-13, -3, 2.3, "#2d2d2d") + rad(13, -3, 2.3, "#2d2d2d");
-  }
-
-  function lok(r) {  // Dampflok nach rechts, Spitze bei x = 16
-    let s = rect(-15, -15, 10, 12, "#2d2d2d") + rect(-13.5, -13, 4.5, 4.2, GLAS) + rect(-16, -16.8, 12, 2, "#1e1e1e") +
-      rect(-5, -11, 18, 8, "#3a3a3a", ` rx="3.5"`) + rect(9, -16, 3.4, 6, "#1e1e1e") + rect(3, -13.5, 2.5, 2.5, GOLD) +
-      rect(-16, -3.6, 31, 1.6, "#1e1e1e") + `<path d="M13,-3.5 L17,0 L13,0 Z" fill="#c8322b"/>` +
-      rad(-11, -2.2, 2.2, "#1e1e1e") + rad(-1.5, -2.6, 2.6, "#1e1e1e") + rad(6, -2.6, 2.6, "#1e1e1e");
-    for (let i = 0; i < 4; i++) {  // Dampfwolken steigen aus dem Schornstein
-      s += `<circle cx="10.7" cy="-18" r="2.4" fill="#f4f1ea" opacity=".9" class="lw-dampf" style="animation-delay:-${f(i * 0.4 + r() * 0.2)}s"/>`;
-    }
-    return s;
-  }
-
-  function wagen(farbe) {  // Personenwagen, Mitte bei x = 0, 24 lang
-    let s = rect(-12, -13.5, 24, 10.5, farbe, ` rx="1.5"`) + rect(-12.6, -15.2, 25.2, 2, "#3d342b");
-    for (let i = 0; i < 3; i++) s += rect(-9.5 + i * 7, -11.5, 4.6, 4, GLAS);
-    return s + rad(-8, -2.2, 2.1, "#1e1e1e") + rad(8, -2.2, 2.1, "#1e1e1e");
-  }
-
-  function zug(anzahl, r) {
-    let s = lok(r);
-    for (let i = 0; i < anzahl; i++) s += `<g transform="translate(${-30 - i * 26},0)">${wagen(wahl(r, ["#2f5a46", "#7a2e22", "#2f4f6b"]))}</g>`;
-    return s;
-  }
-
-  function bahnhof() {
-    return rect(-34, -2, 68, 3, "#9a948a") + rect(-26, -24, 52, 22, "#e8d5b0") + spitze(-30, -24, 60, 10, "#6b5f5a") +
-      uhr(0, -17, 3.6) + bogen(-3.5, -2, 7, 10, HOLZ) +
-      [-20, -12, 7, 15].map((x) => fenster(x, -15, 4.5, 6, GLAS)).join("") + rect(-10, -30, 20, 3.5, "#f3ead8");
-  }
-
-  // Bahnstrecke am Horizont mit Zug(en); die Züge fahren durch, dann ist eine Weile Ruhe
-  function bahn(g, rnd) {
-    const zuege = g.reif >= VERKEHR[3][0] ? 2 : 1, sk = 0.72;
-    // zwischen Stadtmauer (+18) und hinterster Häuserreihe (+28); bei zwei Zügen zwei Gleise
-    const gleise = zuege === 2 ? [g.HORIZONT + 18, g.HORIZONT + 24] : [g.HORIZONT + 22];
-    let s = gleise.map((y) => rect(-10, y - 1, g.W + 20, 2.4, "#8f8573") + rect(-10, y + 0.6, g.W + 20, 0.7, "#5f574c")).join("");
-    if (g.reif >= VERKEHR[2][0]) s += `<g transform="translate(${f(g.W * 0.18)},${f(gleise[0] - 2)}) scale(.8)">${bahnhof()}</g>`;
-    gleise.forEach((y, z) => {
-      const wagenZahl = g.reif >= VERKEHR[2][0] ? 5 : 3, laenge = 46 + wagenZahl * 26;
-      const links = z === 1;  // der zweite fährt in die andere Richtung
-      s += `<g transform="translate(${f(links ? g.W + 20 : -20)},${f(y)}) scale(${links ? -sk : sk},${sk})">` +
-        `<g class="lw-zug" style="--weg:${f((g.W + laenge + 40) / sk)}px;${bewegt(26 + rnd() * 10, rnd)}">${zug(wagenZahl, rnd)}</g></g>`;
-    });
-    return s;
-  }
-
-  // Einwohner (gehen in den Gassen) und Fahrzeuge (auf der Hauptstraße). Jeder Eintrag wird in lernwald.js
-  // zwischen die Häuser einsortiert, damit vordere Häuser hintere Leute verdecken.
-  function leben(g, plaetze, rnd) {
-    const dinge = [];
-    if (g.zustand === "wiese") return dinge;
-    const n = einwohner(g);
-    const gassen = plaetze.gassen || [], summe = gassen.reduce((a, x) => a + x.rechts - x.links, 0);
-    for (let k = 0; k < n && summe > 0; k++) {
-      let wahlPunkt = rnd() * summe, gasse = gassen[0];
-      for (const x of gassen) { wahlPunkt -= x.rechts - x.links; if (wahlPunkt <= 0) { gasse = x; break; } }
-      const weg = 15 + rnd() * 40;
-      dinge.push({ mensch: true, x: gasse.links + rnd() * Math.max(1, gasse.rechts - gasse.links), y: gasse.y + rnd() * 1.5, s: gasse.s * 1.2, weg });
-    }
-    if (g.reif < VERKEHR[0][0]) return dinge;
-    const y = strasseY(g);
-    const kutschen = g.reif >= VERKEHR[3][0] ? 4 : g.reif >= VERKEHR[2][0] ? 3 : g.reif >= VERKEHR[1][0] ? 2 : 1;
-    const fahrzeug = (bild, nachLinks, yy, sek) => ({
-      x: nachLinks ? g.W + 60 : -60, y: yy, s: 1.2,
-      roh: `<g${nachLinks ? ` transform="scale(-1,1)"` : ""}><g class="lw-fahren" style="--weg:${f((g.W + 120) / 1.2)}px;${bewegt(sek, rnd)}">${bild}</g></g>`,
-    });
-    for (let i = 0; i < kutschen; i++) dinge.push(fahrzeug(kutsche(rnd), i % 2 === 1, y + (i % 2 ? 9 : 6), 30 + rnd() * 25));
-    if (g.reif >= VERKEHR[2][0]) {
-      dinge.push({ x: 0, y: y + 0.5, s: 1, roh: oberleitung(g) });
-      for (let i = 0; i < (g.reif >= VERKEHR[3][0] ? 2 : 1); i++) dinge.push(fahrzeug(tram(), i === 1, y + 15, 42 + rnd() * 12));
-    }
-    return dinge;
-  }
-
-  function einwohner(g) {  // dauerhaft in den Gassen unterwegs, mehr in größeren Städten
+  function einwohner(g) {  // dauerhaft auf den Straßen unterwegs, mehr in größeren Städten
     const n = Math.min(70, Math.round(Math.sqrt(g.reif) * 3.5));
     return g.zustand === "verwildert" ? Math.round(n / 3) : n;
   }
@@ -485,7 +289,7 @@
 
   // --- Ausbau nach Lerntagen ------------------------------------------------
   // Jeder Lerntag im Gebiet baut mit: Laternen (je 7 Tage), Bänke (je 30), ab 100 eine Stadtmauer,
-  // ab 200 ein Aquädukt am Horizont.
+  // ab 200 ein Aquädukt (gezeichnet in iso-stadt.js).
 
   function laterne() {
     return `<path d="M0,0 L0,-26" stroke="#3d342b" stroke-width="1.4"/><path d="M-3,-26 L3,-26 L2,-32 L-2,-32 Z" fill="#f2d68a" class="lw-licht"/>` +
@@ -495,43 +299,6 @@
   function bank() {
     return `<path d="M-8,0 L-8,-4 M8,0 L8,-4 M-8,-4 L-8,-9 M8,-4 L8,-9" stroke="${BALKEN}" stroke-width="1.1"/>` +
       rect(-9, -5, 18, 1.6, HOLZ) + rect(-9, -9.5, 18, 1.6, HOLZ);
-  }
-
-  function mauer(g, breite) {
-    const y = g.HORIZONT + 18, links = g.W / 2 - breite / 2 - 30, rechts = g.W / 2 + breite / 2 + 30;
-    let s = rect(links, y - 14, rechts - links, 14, "#c2b8a6") + zinnen(links, y - 14, rechts - links, "#c2b8a6");
-    for (let x = links; x <= rechts + 1; x += (rechts - links) / 4) {
-      s += rect(x - 6, y - 26, 12, 26, "#b9ae9a") + zinnen(x - 6, y - 26, 12, "#b9ae9a") + rect(x - 1, y - 20, 2, 5, "#3d342b");
-    }
-    return s;
-  }
-
-  function aquaedukt(g) {
-    const y = g.HORIZONT + 4, h = 34, w = 18;
-    let s = "";
-    for (const [von, bis] of [[20, 300], [700, 980]]) {
-      s += rect(von, y - h - 5, bis - von, 5, "#cbbf9f");
-      for (let x = von; x + w <= bis; x += w) s += rect(x, y - h, w, h, "#d8cdb2") + bogen(x + 3, y, w - 6, h - 6, "#9a8f78");
-      for (let x = von; x + w / 2 <= bis; x += w / 2) s += rect(x + 1.5, y - h - 13, w / 2 - 3, 8, "#d8cdb2") + bogen(x + 3, y - h - 5, w / 2 - 6, 7, "#9a8f78");
-    }
-    return s;
-  }
-
-  function ausbau(tage, rnd, g) {
-    let hinten = "", vorne = "";
-    if (tage >= 200) hinten += aquaedukt(g);
-    if (tage >= 100) hinten += mauer(g, Math.min(g.W - 140, 420));
-    if (g.reif >= VERKEHR[1][0] && g.zustand !== "wiese") hinten += bahn(g, rnd);  // vor der Stadtmauer
-    const strasse = g.reif >= VERKEHR[0][0] && g.zustand !== "wiese";
-    const yv = strasse ? strasseY(g) + 20 : g.H - g.WIESE + 12;  // Laternen am Straßenrand
-    const laternen = Math.min(16, Math.floor(tage / 7)), baenke = Math.min(6, Math.floor(tage / 30));
-    for (let i = 0; i < laternen; i++) {
-      vorne += `<g transform="translate(${f((i + 0.5) * g.W / laternen)},${f(yv)}) scale(1.3)">${laterne()}</g>`;
-    }
-    for (let i = 0; i < baenke; i++) {
-      vorne += `<g transform="translate(${f((i + 0.5 + (rnd() - 0.5) * 0.3) * g.W / baenke)},${f(yv + 6)}) scale(1.3)">${bank()}</g>`;
-    }
-    return { hinten, vorne };
   }
 
   function ausbauText(tage) {
@@ -578,14 +345,12 @@
       const reif = g.zahlen.baum + g.zahlen.alt;
       return reif < 15 ? "Weiler" : reif < 60 ? "Dorf" : reif < 150 ? "Kleinstadt" : reif < 300 ? "Stadt" : "Großstadt";
     },
-    plaetze,
-    vorne,
-    leben,
     lebenText,
     kartenDeko,
     zentriert: true,
-    ausbau,
     ausbauText,
+    // für die Ansicht von oben (iso-stadt.js, setzt szene)
+    teile: { WAND, DACH, WAND_W, DACH_W, GLAS, STEIN, GOLD, VERKEHR, einwohner, laterne, bank },
     leuteText: "Bewohner",
     pflasterTitel: "Pflasterstraße",
   };

@@ -35,6 +35,8 @@ svg.karte { width: 100%; height: calc(100vh - 200px); min-height: 420px; backgro
 .zustand.gesund { background: #3e7d3a; } .zustand.mittel { background: #869c4b; }
 .zustand.verwildert { background: #9a7b40; } .zustand.wiese { background: #8fa95a; }
 svg.szene { width: 100%; aspect-ratio: 1000 / 620; max-height: 68vh; display: block; }
+svg.szene.von-oben { cursor: grab; touch-action: none; user-select: none; }
+svg.szene.von-oben.zieht { cursor: grabbing; }
 .gebietinfo { display: flex; flex-wrap: wrap; gap: 8px 40px; padding: 10px 16px; align-items: flex-start; }
 .gebietinfo table { border-collapse: collapse; }
 .gebietinfo td { padding: 1px 6px; vertical-align: middle; }

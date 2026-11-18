@@ -58,6 +58,22 @@
 @keyframes lw-dampf { from { transform: translate(0, 0) scale(.6); opacity: .9; }
   to { transform: translate(-14px, -16px) scale(2.2); opacity: 0; } }
 
+/* Stadt von oben: Fahrzeuge fahren einen Abschnitt und tauchen an den Enden auf bzw. ab, Züge fahren
+   durch und dann ist eine Weile Ruhe, Leute gehen hin und her (Weg über --dx, --dy) */
+#lernwald .lw-fahrt { animation: lw-fahrt linear infinite; }
+@keyframes lw-fahrt { 0% { transform: translate(0, 0); opacity: 0; } 8%, 92% { opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)); opacity: 0; } }
+#lernwald .lw-zug2 { animation: lw-zug2 linear infinite; }
+@keyframes lw-zug2 { 0% { transform: translate(0, 0); } 65%, 100% { transform: translate(var(--dx), var(--dy)); } }
+#lernwald .lw-pendeln { animation: lw-pendeln linear infinite; }
+@keyframes lw-pendeln {
+  0%   { transform: translate(0, 0) scaleX(1); }
+  48%  { transform: translate(var(--dx), var(--dy)) scaleX(1); }
+  50%  { transform: translate(var(--dx), var(--dy)) scaleX(-1); }
+  98%  { transform: translate(0, 0) scaleX(-1); }
+  100% { transform: translate(0, 0) scaleX(1); }
+}
+
 /* Beim Öffnen eines Gebiets wachsen Bäume bzw. Häuser nacheinander aus dem Boden */
 #lernwald .lw-wachsen { animation: lw-wachsen .7s cubic-bezier(.2, .9, .3, 1.25) both;
   transform-box: fill-box; transform-origin: 50% 100%; }
