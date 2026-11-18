@@ -14,7 +14,8 @@ from . import daten
 
 ARTEN = (("stapel", "Stapel"), ("schlagwort", "Schlagwort"), ("suche", "Suche"))
 THEMENTEXT = {"wald": "Wald – Bäume wachsen, Tiere ziehen ein",
-              "stadt": "Stadt – Dörfer wachsen zur Stadt, Sehenswürdigkeiten entstehen"}
+              "stadt": "Stadt – Dörfer wachsen zur Stadt, Sehenswürdigkeiten entstehen",
+              "plantage": "Plantage – Hanfpflanzen wachsen vom Samen zur Großplantage"}
 
 
 class Einstellungen(QDialog):

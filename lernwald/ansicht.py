@@ -16,7 +16,8 @@ from . import daten
 
 ORDNER = os.path.dirname(__file__)
 ALBUM = os.path.join(ORDNER, "user_files", "album.json")
-SKRIPTE = ("grundlagen.js", "thema-wald.js", "thema-stadt.js", "iso.js", "iso-stadt.js", "iso-wald.js", "lernwald.js")  # Reihenfolge wichtig
+SKRIPTE = ("grundlagen.js", "thema-wald.js", "thema-stadt.js", "thema-plantage.js", "iso.js", "iso-stadt.js", "iso-wald.js",
+           "iso-plantage.js", "lernwald.js")  # Reihenfolge wichtig
 
 _fenster = None
 

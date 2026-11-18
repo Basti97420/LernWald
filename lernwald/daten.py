@@ -67,6 +67,24 @@ THEMEN = {
             ("schloss", "Schloss", 10),
         ),
     },
+    "plantage": {
+        "name": "Plantage",
+        "knopf": "Plantage",
+        "belohnungen": (
+            ("regentonne", "Regentonne", 1),
+            ("kompost", "Komposthaufen", 1),
+            ("bienenstock", "Bienenstock", 2),
+            ("vogelscheuche", "Vogelscheuche", 2),
+            ("gaertnerhaus", "Gärtnerhaus", 3),
+            ("windrad", "Windrad", 3),
+            ("wasserturm", "Wasserturm", 4),
+            ("trockenscheune", "Trockenscheune", 5),
+            ("hofladen", "Hofladen", 6),
+            ("labor", "Labor", 7),
+            ("kuehlhaus", "Kühlhaus", 8),
+            ("forschung", "Forschungszentrum", 10),
+        ),
+    },
 }
 TIERE = THEMEN["wald"]["belohnungen"]
 

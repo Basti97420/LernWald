@@ -1,16 +1,17 @@
 # Lernwald
 
 Ein Add-on für [Anki](https://apps.ankiweb.net), das deinen Lernstand als Landschaft zeigt, die mit dem Lernen
-wächst: als **Stadt** oder als **Wald**.
+wächst: als **Stadt**, als **Wald** oder als **Plantage**.
 
 Jeder Stapel wird ein Gebiet, jede Karte ein Haus bzw. ein Baum. Neue Karten sind Bauplätze, gut gelernte
 werden Stadthäuser, und Karten, die du lange immer wieder richtig weißt, wachsen zu Hochhäusern und
 Wolkenkratzern. Je mehr gut gelernte Häuser, desto mehr Einwohner: Leute auf den Straßen, Kutschen und Autos,
 Straßenbahnen und Züge. Die Stadtmauer wird massiver, je sicherer der Stapel sitzt. Fällige Karten lassen
 die Stadt verwildern, gesunde Gebiete bekommen Sehenswürdigkeiten. Der Wald kann dasselbe mit Bäumen: vom
-Sprössling bis zum Urwaldriesen, mit Wanderern und Tieren, Reitern, Waldbahn und Hecken statt Mauern.
+Sprössling bis zum Urwaldriesen, mit Wanderern und Tieren, Reitern, Waldbahn und Hecken statt Mauern; die
+Plantage mit Hanfpflanzen, Gewächshäusern und Vertical Farms, Gärtnern, Traktoren und Feldbahn.
 
-- Stadt und Wald von oben, zum Zoomen und Verschieben; überall Bewegung (Vögel, Wolken, Verkehr, Wetter, Wind)
+- Stadt, Wald und Plantage von oben, zum Zoomen und Verschieben; überall Bewegung (Vögel, Wolken, Verkehr, Wetter, Wind)
 - unter jedem Gebiet: wie weit es bis zur nächsten Größe ist und welche Häuser bzw. Bäume bald aufsteigen
 - die Landschaft blass als Hintergrund der Stapelübersicht und hinter dem geöffneten Stapel
 - ist Anki nicht im Vordergrund, steht alles still und kostet keine Rechenleistung
@@ -82,23 +83,23 @@ und die Tageszeit, zu der du meistens lernst, das Licht. Nachts leuchten die Fen
 Im Fenster steht unter jedem Gebiet, wie weit es bis zur nächsten Größe ist, was als Nächstes kommt und welche
 Häuser beim nächsten richtigen Wiederholen voraussichtlich aufsteigen.
 
-## Und der Wald?
+## Und Wald und Plantage?
 
-Der Wald wächst nach genau denselben Regeln und Zahlen, nur mit anderen Bildern:
+Beide wachsen nach genau denselben Regeln und Zahlen wie die Stadt, nur mit anderen Bildern:
 
-| Stadt | Wald |
-|---|---|
-| Bauplatz, Baustelle, Hütte, Haus, Stadthaus | Sprössling, Setzling, junger Baum, Baum, dicker alter Baum |
-| Hochhaus, hohes Hochhaus, Wolkenkratzer | Riesenbaum, Mammutbaum, Urwaldriese |
-| baufälliges Haus, Ruine | kranker Baum, Baumstumpf |
-| Weiler, Dorf, Kleinstadt, Stadt, Großstadt, Metropole | Gehölz, Wäldchen, Wald, Forst, großer Forst, Urwald |
-| Leute auf den Straßen | Wanderer und Tiere auf den Waldwegen |
-| Kutschen, Autos, Straßenbahn | Reiter, Radfahrer, Holzfuhrwerke |
-| Eisenbahn und Bahnhof | Waldbahn und Försterei |
-| Holzpalisade bis doppelter Mauerring mit Wassergraben | Weidenzaun, Trockenmauer, Hecke mit Hochsitzen, hohe Hecke mit Aussichtstürmen, doppelte Hecke mit Bach |
-| Sehenswürdigkeiten auf dem Marktplatz | Tiere auf der Lichtung, von der Kohlmeise (1 lebendiges Gebiet) bis zum Wolf (10) |
-| Laternen (je 7 Lerntage), Bänke, Aquädukt | Blumen (je 3 Lerntage), Bänke, Waldsee (ab 200 Lerntagen) |
-| nachts leuchtende Fenster | nachts Glühwürmchen |
+| Stadt | Wald | Plantage |
+|---|---|---|
+| Bauplatz, Baustelle, Hütte, Haus, Stadthaus | Sprössling, Setzling, junger Baum, Baum, dicker alter Baum | Samen, Steckling, Jungpflanze, Pflanze, blühende Pflanze |
+| Hochhaus, hohes Hochhaus, Wolkenkratzer | Riesenbaum, Mammutbaum, Urwaldriese | große Staude, Gewächshaus, Vertical Farm |
+| baufälliges Haus, Ruine | kranker Baum, Baumstumpf | kranke Pflanze, abgeerntet |
+| Weiler, Dorf, Kleinstadt, Stadt, Großstadt, Metropole | Gehölz, Wäldchen, Wald, Forst, großer Forst, Urwald | Fensterbank, Kleingarten, Gärtnerei, Plantage, Großplantage, Agrarkonzern |
+| Leute auf den Straßen | Wanderer und Tiere auf den Waldwegen | Gärtner auf den Feldwegen |
+| Kutschen, Autos, Straßenbahn | Reiter, Radfahrer, Holzfuhrwerke | Schubkarren, Lieferwagen, Traktoren |
+| Eisenbahn und Bahnhof | Waldbahn und Försterei | Feldbahn und Packhaus |
+| Holzpalisade bis doppelter Mauerring mit Wassergraben | Weidenzaun, Trockenmauer, Hecke mit Hochsitzen, hohe Hecke mit Aussichtstürmen, doppelte Hecke mit Bach | Schnurzaun, Holzzaun, Maschendrahtzaun mit Lampenmasten, Sicherheitszaun mit Wachtürmen, doppelter Zaun mit Bewässerungskanal |
+| Sehenswürdigkeiten auf dem Marktplatz | Tiere auf der Lichtung, von der Kohlmeise (1 lebendiges Gebiet) bis zum Wolf (10) | Hof: Regentonne und Komposthaufen (1) bis Forschungszentrum (10) |
+| Laternen (je 7 Lerntage), Bänke, Aquädukt | Blumen (je 3 Lerntage), Bänke, Waldsee (ab 200 Lerntagen) | Wachstumslampen (je 7 Lerntage), Bänke, Bewässerungsteich (ab 200) |
+| nachts leuchtende Fenster | nachts Glühwürmchen | abends und nachts violettes Pflanzenlicht |
 
 ## Installieren
 

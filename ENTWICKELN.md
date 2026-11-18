@@ -48,8 +48,8 @@ Fenster oder **Werkzeuge → Add-ons → Lernwald → Einstellungen**.
 
 Alle Themen zeigen ein Gebiet isometrisch von oben. `web/iso.js` ist die gemeinsame Zeichenmaschine (Raster,
 Quader, Dächer, Wege, Leute, Fahrzeuge, Bahn, Mauerringe, Wetter, Ausschnitt); was gezeichnet wird, liefert
-das Thema als Stil: `web/iso-stadt.js` (Häuser, Kutschen, Autos, Straßenbahn, Stadtmauer, Laternen, Aquädukt)
-und `web/iso-wald.js` (Bäume bis Urwaldriese, Wanderer und Tiere, Reiter, Radfahrer, Holzfuhrwerke, Waldbahn
+das Thema als Stil: `web/iso-stadt.js` (Häuser, Kutschen, Autos, Straßenbahn, Stadtmauer, Laternen, Aquädukt),
+`web/iso-plantage.js` (Beete, Gewächshäuser, Vertical Farms, Schubkarren, Traktoren, Feldbahn, Zäune) und `web/iso-wald.js` (Bäume bis Urwaldriese, Wanderer und Tiere, Reiter, Radfahrer, Holzfuhrwerke, Waldbahn
 mit Försterei, Hecken mit Hochsitzen, Blumen, Waldsee, Glühwürmchen). Vom Platz in der Mitte wächst das Gebiet
 in alle Richtungen, Häuser bzw. Bäume stehen auf Parzellen zwischen einem Wegegitter (jede dritte Reihe ist
 Weg), die größten in der Mitte. Mausrad zoomt, Ziehen verschiebt, Doppelklick stellt zurück.
@@ -116,9 +116,9 @@ Alle Grafiken sind SVG, im Code gezeichnet, keine fremden Bilder.
   - `daten.py` – Berechnung aus der Sammlung, Themen mit ihren Belohnungen (ohne Qt, getestet)
   - `ansicht.py` – Fenster mit Webansicht, Album
   - `einstellungen.py` – Dialog für Thema und Gebiete
-  - `web/grundlagen.js` – gemeinsame Hilfen und Wachstumsregeln; `web/thema-wald.js`, `web/thema-stadt.js` –
+  - `web/grundlagen.js` – gemeinsame Hilfen und Wachstumsregeln; `web/thema-wald.js`, `web/thema-stadt.js`, `web/thema-plantage.js` –
     Bilder für Legende, Album und Karte, Texte und Wörter je Thema; `web/iso.js` – Ansicht von oben;
-    `web/iso-stadt.js`, `web/iso-wald.js` – ihr Stil je Thema (`szene`); `web/lernwald.js` – Karte, Gebiet, Chronik, Album,
+    `web/iso-stadt.js`, `web/iso-wald.js`, `web/iso-plantage.js` – ihr Stil je Thema (`szene`); `web/lernwald.js` – Karte, Gebiet, Chronik, Album,
     Vögel, Zoomen
 - `werkzeuge/` – Beispielsammlung, HTML-Vorschau, Paketieren, Test-Add-on für ein echtes Anki
 - `tests/` – Tests für `daten.py`
