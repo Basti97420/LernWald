@@ -1,7 +1,8 @@
 # LernWald – Anki-Add-on
 
 Visualisiert Anki-Stapel als Wald oder Stadt (Idee des Nutzers vom 07.11.2026, Eintrag 115 im Info-Board).
-Aufbau, Befehle, Regeln für die Stufen und wie ein neues Thema dazukommt stehen in `README.md`.
+Aufbau, Befehle, Regeln für die Stufen und wie ein neues Thema dazukommt stehen in `ENTWICKELN.md`;
+`README.md` ist nur für Nutzer (was es ist, wie man es installiert).
 
 ## Was Claude hier macht
 
