@@ -174,6 +174,8 @@ class Einstellungen(QDialog):
                         hintergrund=self.hintergrund.isChecked(), hintergrund_deckkraft=self.deckkraft.value(),
                         animationen=self.animationen.isChecked())
         mw.addonManager.writeConfig(__name__, self.cfg)
+        from . import beschriftung_aktualisieren  # Knopf heißt wie das Thema (Stadt bzw. Wald)
+        beschriftung_aktualisieren()
         if mw.state == "deckBrowser":
             mw.deckBrowser.refresh()
         elif mw.state == "overview":

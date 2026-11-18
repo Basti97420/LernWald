@@ -84,3 +84,9 @@ svg.pflaster { width: 100%; max-width: 980px; display: block; }
 .thema-tusche .schild text { fill: #2b2118; font-family: Georgia, serif; }
 .thema-tusche .zustand { background: none !important; color: #2b2118; border: 1px solid #2b2118; }
 .thema-tusche button.an { background: #2b2118; border-color: #2b2118; color: #f4ecd8; }
+
+/* Fortschritt der Stadt (Einwohner bis zur nächsten Größe) */
+.fortschritt { margin: 6px 0 8px; max-width: 460px; }
+.fortschritt .balken { height: 8px; margin-bottom: 4px; border-radius: 4px; background: var(--karte); border: 1px solid var(--rand); overflow: hidden; }
+.fortschritt .balken span { display: block; height: 100%; background: var(--gruen); }
+.bald { color: var(--leise); }

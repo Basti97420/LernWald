@@ -33,7 +33,7 @@ im Wald wiegen sich die Bäume, Regen fällt. Beim Öffnen eines Gebiets wachsen
 dem Boden. Alles in `web/bewegung.css`, Dauer und Versatz je Element setzt `lernwald.js`. Abschaltbar in den
 Einstellungen; bei „weniger Bewegung“ im System steht alles still.
 
-Öffnen über **Werkzeuge → Lernwald** oder den Knopf in der oberen Leiste. Einstellungen über den Knopf im
+Öffnen über **Werkzeuge → Stadt** bzw. **Wald** oder den gleichnamigen Knopf in der oberen Leiste. Einstellungen über den Knopf im
 Fenster oder **Werkzeuge → Add-ons → Lernwald → Einstellungen**.
 
 ### Stadt von oben
@@ -47,14 +47,23 @@ Doppelklick stellt zurück. Nachts leuchten Fenster.
 hintereinander richtig war: ab 180 Tagen Intervall ein Hochhaus, ab 365 Tagen ohne Fehler ein hohes Hochhaus,
 ab 730 Tagen ohne Fehler ein Wolkenkratzer aus Glas (`HOCH_AB` in `daten.py`). Die höchsten stehen in der Mitte.
 
-**Verkehr und Einwohner** wachsen stufenlos mit der Zahl reifer Häuser (`verkehr` in `thema-stadt.js`):
+**Einwohner** sind der Wachstumswert der Stadt (`bewohner` in `daten.py`): Hütte 1, Haus 3, Stadthaus 6,
+Hochhaus 12, hohes Hochhaus 25, Wolkenkratzer 50, baufällig 1, Bauplatz, Baustelle und Ruine 0. Ein Haus mit
+fälliger Karte zählt nur halb (die Leute bleiben zu Hause). Daraus folgen die Größe (Weiler, ab 50 Dorf, ab 300
+Kleinstadt, ab 1.000 Stadt, ab 3.000 Großstadt, ab 8.000 Metropole) und das Leben auf den Straßen
+(`verkehr` in `thema-stadt.js`):
 
 | | wie viele |
 |---|---|
-| Einwohner auf den Straßen | √reif × 5, höchstens 160 (verfallende Städte ein Drittel), dazu die Wiederholungen von heute |
-| Fahrzeuge (ab 15) | reif ÷ 12, höchstens 40; ab 120 werden immer mehr davon Autos statt Kutschen (bis 90 %) |
-| Straßenbahnen (ab 150) | 1, dann eine mehr je 80 reife Häuser, höchstens 8; dazu ein Bahnhof |
-| Züge (ab 60) | 1, dann einer mehr je 120 reife Häuser, höchstens 4, abwechselnd in beide Richtungen; 3 bis 8 Wagen |
+| Leute auf den Straßen | eine Figur je 20 Einwohner, höchstens 160, dazu die Wiederholungen von heute; sie gehen neben ihren Häusern, die großen Häuser in der Mitte bringen am meisten Leben |
+| Fahrzeuge (ab 50) | Einwohner ÷ 70, höchstens 40; ab 600 werden immer mehr davon Autos statt Kutschen (bis 90 %) |
+| Straßenbahnen (ab 1.000) | 1, dann eine mehr je 600 Einwohner, höchstens 8; dazu ein Bahnhof |
+| Züge (ab 300) | 1, dann einer mehr je 1.200 Einwohner, höchstens 4, abwechselnd in beide Richtungen; 3 bis 8 Wagen |
+
+Unter dem Bild (nur im Fenster, nicht im Hintergrund) steht ein Fortschrittsbalken bis zur nächsten Größe, was als
+Nächstes dazukommt, die Mauer und eine Schätzung, welche Häuser beim nächsten richtigen Wiederholen aufsteigen
+(Intervall × Ease, `aufstieg` in `daten.py`). Knopf in der oberen Leiste und Menüpunkt heißen wie das Thema
+(„Stadt“ bzw. „Wald“).
 
 **Stadtmauer** nach der Sicherheit des Gebiets, also dem Anteil reifer Karten an allen (ohne ausgesetzte):
 ab 15 % Holzpalisade, ab 35 % niedrige Steinmauer, ab 55 % Mauer mit Zinnen und Ecktürmen, ab 75 % hohe Mauer mit

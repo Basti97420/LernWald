@@ -67,6 +67,19 @@ class Stufen(unittest.TestCase):
         zahlen.update(spross=2, baum=3, alt=3, stumpf=10)   # ausgesetzte zählen nicht
         self.assertEqual(daten.sicherheit(zahlen), 75)
 
+    def test_bewohner_und_aufstieg(self):
+        self.assertEqual(daten.bewohner("baum", 0, False), 3)
+        self.assertEqual(daten.bewohner("baum", 0, True), 1.5)        # fällig: halb so viele unterwegs
+        self.assertEqual(daten.bewohner("alt", 3, False), 50)         # Wolkenkratzer
+        self.assertEqual(daten.bewohner("setzling", 0, False), 0)
+        self.assertEqual(daten.aufstieg("jung", 0, 10, 0, 2500), "haus")       # 10 × 2,5 = 25 ≥ 21
+        self.assertIsNone(daten.aufstieg("jung", 0, 5, 0, 2500))
+        self.assertEqual(daten.aufstieg("baum", 0, 40, 1, 2500), "stadthaus")  # 100 ≥ 90
+        self.assertIsNone(daten.aufstieg("baum", 0, 40, 2, 2500))              # zu oft vergessen
+        self.assertEqual(daten.aufstieg("alt", 0, 80, 0, 2500), 1)             # 200 ≥ 180: Hochhaus
+        self.assertEqual(daten.aufstieg("alt", 2, 300, 0, 2500), 3)            # 750 ≥ 730: Wolkenkratzer
+        self.assertIsNone(daten.aufstieg("alt", 3, 900, 0, 2500))              # höher geht es nicht
+
     def test_serie_und_tageszeit(self):
         self.assertEqual(daten._serie({0: 3, 1: 2, 2: 1, 4: 1}), 3)
         self.assertEqual(daten._serie({1: 2, 2: 1}), 2)      # heute noch nicht gelernt: Serie läuft weiter
@@ -103,6 +116,8 @@ class Sammlung(unittest.TestCase):
         self.assertEqual(len(arbeit["hoch"]), 3)
         self.assertTrue(any(b[2] == 3 for b in arbeit["baeume"]))   # Wolkenkratzer in der Beispielsammlung
         self.assertTrue(0 < arbeit["sicherheit"] <= 100)
+        self.assertGreater(arbeit["einwohner"], 0)
+        self.assertEqual(set(arbeit["bald"]), {"haus", "stadthaus", "hochhaus"})
         self.assertEqual(wald["gebiete"][namen.index("Spanisch")]["zustand"], "wiese")
         self.assertEqual(wald["gebiete"][namen.index("Chemie")]["zustand"], "verwildert")
 

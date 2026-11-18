@@ -263,8 +263,8 @@
     const { dauer, figur, voegel } = hilfen;
     const nacht = zeit === "nacht", abend = zeit === "abend";
     const L = nacht ? (x) => ton(x, 0.55) : abend ? (x) => ton(x, 0.88) : (x) => x;
-    const reif = g.zahlen.baum + g.zahlen.alt, tage = c.lerntage || 0;
-    const geo = { zustand: g.zustand, reif };
+    const tage = c.lerntage || 0;
+    const geo = { zustand: g.zustand, einwohner: g.einwohner };
     const n = g.baeume.length;
     const lots = stadtplan(n, rnd);
     // große Häuser in die Mitte
@@ -306,10 +306,13 @@
         ` M${pt(P(0.4, -RS))} L${pt(P(0.4, RS))} M${pt(P(0.6, -RS))} L${pt(P(0.6, RS))}" stroke="${L("#6f665a")}" stroke-width=".7"/>`;
     }
 
-    // Häuser
+    // Häuser; wer wo wohnt, merken wir uns für die Leute auf der Straße
+    const wohnorte = [];
     ordnung.forEach((o2, k) => {
       const l = lots[k];
       if (!l) return;
+      const w = B.hausBewohner(o2.b);
+      if (w) wohnorte.push({ i: l.i, j: l.j, w });
       let s = haus(L, o2.b[0], o2.b[1], o2.b[2] || 0, l.i, l.j, rnd, nacht || abend);
       if (wachsen) s = `<g class="lw-wachsen" style="animation-delay:${f(0.1 + 1.6 * k / Math.max(1, n))}s">${s}</g>`;
       neu(l.i + l.j + 1, s);
@@ -417,7 +420,7 @@
         neu(j - RV, `<g transform="translate(${pt(start)})"><g class="lw-zug2" style="--dx:${f(dx * vor)}px;--dy:${f(dy * vor)}px;${dauer(26 + rnd() * 14, rnd)}">` +
           `${zug(L, v.wagen, rnd, fahrbahn("i", vor))}</g></g>`);
       });
-      if (reif >= 150) {
+      if (v.trams) {  // Bahnhof ab der Stadt mit Straßenbahn
         const j = -RB + 0.4, i = -2;
         neu(i + j + 2, quader(L, i, j, i + 3, j + 1.2, 12, "#e8d5b0") + satteldach(L, i - 0.1, j - 0.1, i + 3.1, j + 1.3, 12, 8, "#6b5f5a", "#e8d5b0", false) +
           fenster(L, i, j, i + 3, j + 1.2, 1, 12, nacht || abend, rnd));
@@ -431,11 +434,28 @@
         if ((istStrasse(i) || istStrasse(j)) && Math.hypot(i + 0.5, j + 0.5) <= RS - 0.5) strassen.push([i, j]);
       }
     }
-    const leute = g.zustand === "wiese" ? 0 : v.einwohner + Math.min(30, c.heute || 0);
+    // Leute gehen auf den Straßen neben ihren Häusern: große, gepflegte Häuser bringen mehr Leben
+    const summe = wohnorte.reduce((a, x) => a + x.w, 0);
+    const nebenan = () => {  // ein Straßenstück neben einem Haus, gewichtet nach seinen Einwohnern
+      let x = rnd() * summe;
+      const h = wohnorte.find((o3) => (x -= o3.w) <= 0) || wohnorte[wohnorte.length - 1];
+      const moeglich = [];
+      for (const d of [-1, 1]) {
+        if (istStrasse(h.i + d)) moeglich.push([h.i + d, h.j, "j"]);  // Straße quer zu i, läuft entlang j
+        if (istStrasse(h.j + d)) moeglich.push([h.i, h.j + d, "i"]);
+      }
+      return moeglich.length ? wahl(rnd, moeglich) : null;
+    };
+    const leute = g.zustand === "wiese" ? 0 : v.leute + Math.min(30, c.heute || 0);
     for (let k = 0; k < leute && strassen.length; k++) {
-      const [i0, j0] = wahl(rnd, strassen), achse = istStrasse(j0) ? "i" : "j";
-      const i = i0 + 0.25 + rnd() * 0.5, j = j0 + 0.25 + rnd() * 0.5, [dx, dy] = versatz(achse, 1 + rnd() * 1.5);
-      neu(i + j + 0.6, `<g transform="translate(${pt(P(i, j))}) scale(.8)"><g class="lw-pendeln" style="--dx:${f(dx / 0.8)}px;--dy:${f(dy / 0.8)}px;${dauer(12 + rnd() * 12, rnd)}">` +
+      let ort = summe ? nebenan() : null;
+      if (!ort) {
+        const [i0, j0] = wahl(rnd, strassen);
+        ort = [i0, j0, istStrasse(j0) ? "i" : "j"];
+      }
+      const [i0, j0, achse] = ort;
+      const i = i0 + 0.25 + rnd() * 0.5, j = j0 + 0.25 + rnd() * 0.5, [dx, dy] = versatz(achse, 0.6 + rnd() * 1.2);
+      neu(i + j + 0.6, `<g transform="translate(${pt(P(i, j))}) scale(.8)"><g class="lw-pendeln" style="--dx:${f(dx / 0.8)}px;--dy:${f(dy / 0.8)}px;${dauer(10 + rnd() * 12, rnd)}">` +
         `<g class="lw-wippen" style="${dauer(0.5 + rnd() * 0.2, rnd)}">${figur(rnd)}</g></g></g>`);
     }
 

@@ -54,6 +54,8 @@ def _start():
         _foto(w, "gebiet.png")
         w.web.evalWithCallback("document.getAnimations().length",
                                lambda n: print("ANIMATIONEN Gebiet", n, flush=True))
+        w.web.evalWithCallback("[...document.querySelectorAll('.gebietinfo p, .fortschritt')].map((e) => e.innerText).join(' | ')",
+                               lambda t: print("INFO", t, flush=True))
         QTimer.singleShot(4000, schritt3b)
 
     def schritt3b():
@@ -74,6 +76,7 @@ def _start():
         _foto(d, "einstellungen.png")
         d._speichern()  # wie der Knopf „Speichern“
         print("GESPEICHERT", json.dumps(mw.addonManager.getConfig("lernwald"), ensure_ascii=False), flush=True)
+        print("KNOPF", sys.modules["lernwald"]._aktion.text(), flush=True)  # Menüpunkt heißt wie das Thema
         w.reject()
         mw.close()
 

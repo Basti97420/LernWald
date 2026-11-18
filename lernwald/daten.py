@@ -21,6 +21,9 @@ KRANK_AB_FEHLER = 8     # so oft vergessen = krank bzw. baufällig (Ankis Standa
 # Über der größten Stufe wächst ein Haus weiter, je länger das Intervall (also je öfter die Karte hintereinander
 # richtig war): (Intervall ab, höchstens so oft vergessen) für Hochhaus, hohes Hochhaus, Wolkenkratzer
 HOCH_AB = ((180, 1), (365, 0), (730, 0))
+# Einwohner je Haus nach Stufe; Hochhäuser nach Höhe. Ein Haus mit fälliger Karte zählt nur halb.
+BEWOHNER = {"spross": 0, "setzling": 0, "jung": 1, "baum": 3, "alt": 6, "krank": 1, "stumpf": 0}
+BEWOHNER_HOCH = (12, 25, 50)
 
 GESUND_AB = 70          # Gesundheit in Prozent, ab der ein Gebiet als gesund zählt
 VERWILDERT_UNTER = 40
@@ -30,6 +33,7 @@ MIN_REIFE_FUER_BELOHNUNG = 10   # so viele reife Karten braucht ein gesundes Geb
 THEMEN = {
     "wald": {
         "name": "Wald",
+        "knopf": "Wald",  # Beschriftung in Ankis oberer Leiste und im Menü
         "belohnungen": (
             ("meise", "Kohlmeise", 1),
             ("eichhoernchen", "Eichhörnchen", 1),
@@ -47,6 +51,7 @@ THEMEN = {
     },
     "stadt": {
         "name": "Stadt",
+        "knopf": "Stadt",
         "belohnungen": (
             ("brunnen", "Dorfbrunnen", 1),
             ("marktstand", "Marktstand", 1),
@@ -64,7 +69,7 @@ THEMEN = {
     },
 }
 # Tusche-Stadt: dieselbe Stadt, gezeichnet wie ein Kupferstich; teilt sich die Sehenswürdigkeiten mit „stadt“
-THEMEN["tusche"] = {"name": "Tusche-Stadt", "belohnungen": THEMEN["stadt"]["belohnungen"]}
+THEMEN["tusche"] = {"name": "Tusche-Stadt", "knopf": "Stadt", "belohnungen": THEMEN["stadt"]["belohnungen"]}
 TIERE = THEMEN["wald"]["belohnungen"]
 
 CHRONIK_TAGE = 371      # so viele Tage zeigt die Chronik (53 Wochen)
@@ -144,6 +149,29 @@ def hoehe(s, ivl, lapses):
     return sum(1 for ab, fehler in HOCH_AB if ivl >= ab and lapses <= fehler)
 
 
+def bewohner(s, h, faellig):
+    """Einwohner eines Hauses (Karte); fällige zählen halb."""
+    n = BEWOHNER_HOCH[h - 1] if h else BEWOHNER[s]
+    return n / 2 if faellig else n
+
+
+def aufstieg(s, h, ivl, lapses, factor):
+    """Welche Stufe ein Haus beim nächsten richtigen Wiederholen voraussichtlich erreicht, sonst None.
+    Abgeschätzt aus Intervall mal Ease (ohne Zufallsstreuung und Bonus): "haus", "stadthaus" oder 1–3 (Hochhaus)."""
+    if s not in ("jung", "baum", "alt"):
+        return None
+    neu = ivl * (factor or 2500) / 1000
+    if s == "jung":
+        return "haus" if neu >= JUNG_BIS else None
+    if s == "baum":
+        return "stadthaus" if neu >= ALT_AB and lapses <= ALT_MAX_FEHLER else None
+    if h < len(HOCH_AB):
+        ab, fehler = HOCH_AB[h]
+        if neu >= ab and lapses <= fehler:
+            return h + 1
+    return None
+
+
 def sicherheit(zahlen):
     """Wie sicher ein Gebiet sitzt, 0–100: Anteil reifer Karten an allen (ohne ausgesetzte); None ohne Karten."""
     alle = sum(zahlen[s] for s in STUFEN if s != "stumpf")
@@ -175,7 +203,7 @@ def _karten(col, ids):
         return []
     liste = ",".join(str(int(i)) for i in ids)
     return col.db.all(
-        "select c.id, c.type, c.queue, c.ivl, c.lapses, c.due, n.tags from cards c "
+        "select c.id, c.type, c.queue, c.ivl, c.lapses, c.due, n.tags, c.factor from cards c "
         "join notes n on n.id = c.nid where c.id in (%s) order by c.id" % liste
     )
 
@@ -183,10 +211,12 @@ def _karten(col, ids):
 def gebiet_berechnen(col, gebiet, heute, max_baeume):
     zahlen = dict.fromkeys(STUFEN, 0)
     hoch = [0] * len(HOCH_AB)  # Hochhäuser je Höhe
+    bald = {"haus": 0, "stadthaus": 0, "hochhaus": [0] * len(HOCH_AB)}  # Aufstiege beim nächsten Wiederholen
+    einwohner = 0
     welk = 0
     baeume = []
     cids = col.find_cards(gebiet["suche"])
-    for _cid, typ, queue, ivl, lapses, due, tags in _karten(col, cids):
+    for _cid, typ, queue, ivl, lapses, due, tags, factor in _karten(col, cids):
         s = stufe(typ, queue, ivl, lapses, " leech " in " %s " % tags.lower())
         faellig = queue in (2, 3) and due < heute
         h = hoehe(s, ivl, lapses)
@@ -194,6 +224,12 @@ def gebiet_berechnen(col, gebiet, heute, max_baeume):
         welk += faellig
         if h:
             hoch[h - 1] += 1
+        einwohner += bewohner(s, h, faellig)
+        a = aufstieg(s, h, ivl, lapses, factor)
+        if isinstance(a, int):
+            bald["hochhaus"][a - 1] += 1
+        elif a:
+            bald[a] += 1
         baeume.append((s, faellig, h))
     if len(baeume) > max_baeume:
         # gleichmäßig ausdünnen, damit die Anteile stimmen
@@ -209,6 +245,8 @@ def gebiet_berechnen(col, gebiet, heute, max_baeume):
         "zustand": zustand(g),
         "baeume": [[s, int(f), h] for s, f, h in baeume],  # Stufe, fällig, Höhe
         "hoch": hoch,
+        "einwohner": round(einwohner),
+        "bald": bald,
         "sicherheit": sicherheit(zahlen),
         "belohnungen": [],
         "_cids": set(cids),

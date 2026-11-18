@@ -276,7 +276,7 @@
       ${svg}
       <div class="gebietinfo"><table>${zeilen}<tr><td>${symbol(T.bild("jung", 1, zufall(5)))}</td><td>davon fällig: ${T.welk.split(" – ")[0]}</td><td class="zahl">${g.welk}</td></tr></table>
       <div><p>${namen ? T.hier(namen) : g.zustand === "gesund" ? T.nochKeine(D.min_reife) : T.nurGesund}</p>
-      ${T.lebenText ? `<p>${T.lebenText({ zustand: g.zustand, reif: z.baum + z.alt, sicherheit: g.sicherheit, hoch: g.hoch })}</p>` : ""}
+      ${T.lebenText ? T.lebenText(g) : ""}
       ${gebietChronik(c, wetter, zeit)}
       ${n < g.karten ? `<p class="klein">Gezeichnet: ${n} von ${g.karten} Karten (gleichmäßig ausgewählt).</p>` : ""}</div></div>`;
     binden();
