@@ -55,6 +55,18 @@ class Stufen(unittest.TestCase):
             schwellen = [b[2] for b in t["belohnungen"]]
             self.assertEqual(schwellen, sorted(schwellen))
 
+    def test_hoehe_und_sicherheit(self):
+        self.assertEqual(daten.hoehe("baum", 800, 0), 0)    # nur die größte Stufe wächst in die Höhe
+        self.assertEqual(daten.hoehe("alt", 100, 0), 0)
+        self.assertEqual(daten.hoehe("alt", 200, 1), 1)     # Hochhaus
+        self.assertEqual(daten.hoehe("alt", 400, 1), 1)     # einmal vergessen: nicht höher
+        self.assertEqual(daten.hoehe("alt", 400, 0), 2)
+        self.assertEqual(daten.hoehe("alt", 800, 0), 3)     # Wolkenkratzer
+        zahlen = dict.fromkeys(daten.STUFEN, 0)
+        self.assertIsNone(daten.sicherheit(zahlen))
+        zahlen.update(spross=2, baum=3, alt=3, stumpf=10)   # ausgesetzte zählen nicht
+        self.assertEqual(daten.sicherheit(zahlen), 75)
+
     def test_serie_und_tageszeit(self):
         self.assertEqual(daten._serie({0: 3, 1: 2, 2: 1, 4: 1}), 3)
         self.assertEqual(daten._serie({1: 2, 2: 1}), 2)      # heute noch nicht gelernt: Serie läuft weiter
@@ -88,6 +100,9 @@ class Sammlung(unittest.TestCase):
         self.assertEqual(arbeit["karten"], 440)  # SEW und KUKA zusammen
         self.assertEqual(sum(arbeit["zahlen"].values()), 440)
         self.assertLessEqual(len(arbeit["baeume"]), 400)
+        self.assertEqual(len(arbeit["hoch"]), 3)
+        self.assertTrue(any(b[2] == 3 for b in arbeit["baeume"]))   # Wolkenkratzer in der Beispielsammlung
+        self.assertTrue(0 < arbeit["sicherheit"] <= 100)
         self.assertEqual(wald["gebiete"][namen.index("Spanisch")]["zustand"], "wiese")
         self.assertEqual(wald["gebiete"][namen.index("Chemie")]["zustand"], "verwildert")
 

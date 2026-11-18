@@ -41,19 +41,28 @@ Fenster oder **Werkzeuge → Add-ons → Lernwald → Einstellungen**.
 Die Stadt (und die Tusche-Stadt) zeigt ein Gebiet isometrisch von oben (`web/iso-stadt.js`): Vom Marktplatz
 mit den Sehenswürdigkeiten wächst sie in alle Richtungen, Häuser stehen auf Parzellen zwischen einem
 Straßengitter (jede dritte Reihe ist Straße), die größten in der Mitte. Mausrad zoomt, Ziehen verschiebt,
-Doppelklick stellt zurück. Nachts leuchten Fenster. Mit der Zahl reifer Häuser wächst das Leben:
+Doppelklick stellt zurück. Nachts leuchten Fenster.
 
-| reife Häuser | dazu |
+**Hochhäuser:** Ein Stadthaus (Intervall ab 90 Tagen, höchstens einmal vergessen) wächst weiter, je öfter die Karte
+hintereinander richtig war: ab 180 Tagen Intervall ein Hochhaus, ab 365 Tagen ohne Fehler ein hohes Hochhaus,
+ab 730 Tagen ohne Fehler ein Wolkenkratzer aus Glas (`HOCH_AB` in `daten.py`). Die höchsten stehen in der Mitte.
+
+**Verkehr und Einwohner** wachsen stufenlos mit der Zahl reifer Häuser (`verkehr` in `thema-stadt.js`):
+
+| | wie viele |
 |---|---|
-| immer | Einwohner auf den Straßen, je größer die Stadt, desto mehr (höchstens 70), dazu die Wiederholungen von heute |
-| ab 15 (Dorf) | gepflasterte Straßen mit Kutschen |
-| ab 60 (Kleinstadt) | Eisenbahn hinter der Stadt |
-| ab 150 (Stadt) | Straßenbahn auf den Hauptstraßen, Bahnhof, längere Züge |
-| ab 300 (Großstadt) | zweiter Zug in Gegenrichtung, dichter Verkehr |
+| Einwohner auf den Straßen | √reif × 5, höchstens 160 (verfallende Städte ein Drittel), dazu die Wiederholungen von heute |
+| Fahrzeuge (ab 15) | reif ÷ 12, höchstens 40; ab 120 werden immer mehr davon Autos statt Kutschen (bis 90 %) |
+| Straßenbahnen (ab 150) | 1, dann eine mehr je 80 reife Häuser, höchstens 8; dazu ein Bahnhof |
+| Züge (ab 60) | 1, dann einer mehr je 120 reife Häuser, höchstens 4, abwechselnd in beide Richtungen; 3 bis 8 Wagen |
 
-Die Lerntage bauen wie bisher Laternen, Bänke, Stadtmauer (im Quadrat mit Toren und Ecktürmen) und Aquädukt.
-Fahrzeuge fahren jeweils zwei Blöcke weit und tauchen an den Enden auf und ab, damit sie richtig zwischen
-den Häusern liegen. Die letzte Fassung als Seitenansicht ist Commit `8be8de6`.
+**Stadtmauer** nach der Sicherheit des Gebiets, also dem Anteil reifer Karten an allen (ohne ausgesetzte):
+ab 15 % Holzpalisade, ab 35 % niedrige Steinmauer, ab 55 % Mauer mit Zinnen und Ecktürmen, ab 75 % hohe Mauer mit
+Tor- und Zwischentürmen, ab 90 % doppelter Mauerring mit Wassergraben und Brücken.
+
+Die Lerntage bauen Laternen, Bänke und ab 200 ein Aquädukt. Fahrzeuge fahren jeweils zwei Blöcke weit und
+tauchen an den Enden auf und ab, damit sie richtig zwischen den Häusern liegen. Die letzte Fassung als
+Seitenansicht ist Commit `8be8de6`.
 
 ### Tusche-Stadt
 
@@ -69,7 +78,7 @@ Striche leicht zittern. Die Sehenswürdigkeiten sind dieselben wie in der Stadt.
 
 | Statistik | im Bild |
 |---|---|
-| Lerntage im Gebiet | Ausbau: Stadt je 7 Tage eine Laterne, je 30 eine Bank, ab 100 Stadtmauer, ab 200 Aquädukt; Wald je 3 Tage eine Blume, je 30 eine Bank |
+| Lerntage im Gebiet | Ausbau: Stadt je 7 Tage eine Laterne, je 30 eine Bank, ab 200 Aquädukt; Wald je 3 Tage eine Blume, je 30 eine Bank |
 | Serie im Gebiet ab 7 Tagen | Wimpelkette über dem Platz |
 | Wiederholungen heute im Gebiet | so viele Bewohner bzw. Wanderer (höchstens 30) |
 | Trefferquote 30 Tage im Gebiet | Wetter: ab 90 % Sonne, ab 80 % Wolken, darunter Regen |

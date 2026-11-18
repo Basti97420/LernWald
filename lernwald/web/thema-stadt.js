@@ -264,22 +264,50 @@
     },
   };
 
-  // --- Verkehr und Einwohner: wächst mit der Zahl reifer Häuser (gezeichnet in iso-stadt.js) ---
+  // --- Wachstum: Verkehr und Einwohner nach reifen Häusern, Mauer nach Sicherheit (gezeichnet in iso-stadt.js)
 
+  // Meilensteine für den Text: ab so vielen reifen Häusern
   const VERKEHR = [
-    [15, "Hauptstraße mit Kutschen"], [60, "Eisenbahn"], [150, "Straßenbahn und Bahnhof"], [300, "zweiter Zug, dichter Verkehr"],
+    [15, "Straßen mit Kutschen"], [60, "Eisenbahn"], [120, "erste Autos"], [150, "Straßenbahn und Bahnhof"],
+    [180, "zweiter Zug"], [300, "dritter Zug"], [420, "vierter Zug"],
   ];
-  function einwohner(g) {  // dauerhaft auf den Straßen unterwegs, mehr in größeren Städten
-    const n = Math.min(70, Math.round(Math.sqrt(g.reif) * 3.5));
-    return g.zustand === "verwildert" ? Math.round(n / 3) : n;
+
+  // Wie viel unterwegs ist; alles wächst stufenlos mit der Zahl reifer Häuser
+  function verkehr(g) {
+    const r = g.reif || 0;
+    if (g.zustand === "wiese") return { einwohner: 0, fahrzeuge: 0, autos: 0, trams: 0, zuege: 0, wagen: 0 };
+    const einwohner = Math.min(160, Math.round(Math.sqrt(r) * 5));
+    const fahrzeuge = r >= 15 ? Math.min(40, Math.round(r / 12)) : 0;
+    return {
+      einwohner: g.zustand === "verwildert" ? Math.round(einwohner / 3) : einwohner,
+      fahrzeuge,                                                               // Kutschen und Autos zusammen
+      autos: Math.round(fahrzeuge * Math.max(0, Math.min(0.9, (r - 120) / 300))),  // ab 120 erste Autos
+      trams: r >= 150 ? Math.min(8, 1 + Math.floor((r - 150) / 80)) : 0,
+      zuege: r >= 60 ? Math.min(4, 1 + Math.floor((r - 60) / 120)) : 0,
+      wagen: Math.min(8, 3 + Math.floor(r / 120)),                             // Wagen je Zug
+    };
   }
+
+  // Stadtmauer nach der Sicherheit des Gebiets (Anteil reifer Karten, 0–100)
+  const MAUER = [
+    [15, "Holzpalisade"], [35, "niedrige Steinmauer"], [55, "Mauer mit Zinnen und Ecktürmen"],
+    [75, "hohe Mauer mit Tortürmen"], [90, "doppelter Mauerring mit Wassergraben"],
+  ];
+  const mauerStufe = (sicher) => MAUER.filter((m) => (sicher || 0) >= m[0]).length;  // 0 = keine Mauer
 
   function lebenText(g) {
     if (g.zustand === "wiese") return "";
-    const da = VERKEHR.filter((v) => g.reif >= v[0]).map((v) => v[1]);
-    const naechstes = VERKEHR.find((v) => g.reif < v[0]);
-    return `${einwohner(g)} Einwohner · Verkehr: ${da.length ? da.join(", ") : "noch keiner"}` +
-      (naechstes ? ` (${naechstes[1]} ab ${naechstes[0]} reifen Häusern)` : "");
+    const v = verkehr(g), teile = [`${v.einwohner} Einwohner`];
+    const zahl = (n, eins, mehr) => `${n} ${n === 1 ? eins : mehr}`;
+    if (v.fahrzeuge) teile.push(zahl(v.fahrzeuge - v.autos, "Kutsche", "Kutschen") + (v.autos ? ", " + zahl(v.autos, "Auto", "Autos") : ""));
+    if (v.trams) teile.push(zahl(v.trams, "Straßenbahn", "Straßenbahnen"));
+    if (v.zuege) teile.push(v.zuege === 1 ? `1 Zug mit ${v.wagen} Wagen` : `${v.zuege} Züge mit je ${v.wagen} Wagen`);
+    const naechstes = VERKEHR.find((x) => g.reif < x[0]);
+    const m = mauerStufe(g.sicherheit), mNaechste = MAUER[m];
+    return teile.join(" · ") + (naechstes ? ` (${naechstes[1]} ab ${naechstes[0]} reifen Häusern)` : "") +
+      `<br>Stadtmauer: ${m ? MAUER[m - 1][1] : "keine"} – ${g.sicherheit || 0} % der Karten sitzen sicher` +
+      (mNaechste ? ` (${mNaechste[1]} ab ${mNaechste[0]} %)` : "") +
+      (g.hoch && g.hoch.some((x) => x) ? `<br>Hochhäuser: ${g.hoch[0]} · hohe Hochhäuser: ${g.hoch[1]} · Wolkenkratzer: ${g.hoch[2]}` : "");
   }
 
   function kartenDeko(R) {  // Wege durch das Dorf auf der Gesamtkarte
@@ -288,8 +316,8 @@
   }
 
   // --- Ausbau nach Lerntagen ------------------------------------------------
-  // Jeder Lerntag im Gebiet baut mit: Laternen (je 7 Tage), Bänke (je 30), ab 100 eine Stadtmauer,
-  // ab 200 ein Aquädukt (gezeichnet in iso-stadt.js).
+  // Jeder Lerntag im Gebiet baut mit: Laternen (je 7 Tage), Bänke (je 30), ab 200 ein Aquädukt
+  // (gezeichnet in iso-stadt.js). Die Stadtmauer hängt an der Sicherheit, siehe oben.
 
   function laterne() {
     return `<path d="M0,0 L0,-26" stroke="#3d342b" stroke-width="1.4"/><path d="M-3,-26 L3,-26 L2,-32 L-2,-32 Z" fill="#f2d68a" class="lw-licht"/>` +
@@ -305,10 +333,8 @@
     const teile = [];
     if (tage >= 7) teile.push(`${Math.min(16, Math.floor(tage / 7))} Laternen`);
     if (tage >= 30) teile.push(`${Math.min(6, Math.floor(tage / 30))} Bänke`);
-    if (tage >= 100) teile.push("Stadtmauer");
     if (tage >= 200) teile.push("Aquädukt");
-    const naechstes = tage < 7 ? "erste Laterne ab 7" : tage < 30 ? "erste Bank ab 30" : tage < 100 ? "Stadtmauer ab 100" :
-      tage < 200 ? "Aquädukt ab 200" : "";
+    const naechstes = tage < 7 ? "erste Laterne ab 7" : tage < 30 ? "erste Bank ab 30" : tage < 200 ? "Aquädukt ab 200" : "";
     return (teile.length ? "gebaut: " + teile.join(", ") : "noch nichts gebaut") + (naechstes ? ` (${naechstes} Lerntagen)` : "");
   }
 
@@ -350,7 +376,7 @@
     zentriert: true,
     ausbauText,
     // für die Ansicht von oben (iso-stadt.js, setzt szene)
-    teile: { WAND, DACH, WAND_W, DACH_W, GLAS, STEIN, GOLD, VERKEHR, einwohner, laterne, bank },
+    teile: { WAND, DACH, WAND_W, DACH_W, GLAS, STEIN, GOLD, verkehr, mauerStufe, laterne, bank },
     leuteText: "Bewohner",
     pflasterTitel: "Pflasterstraße",
   };

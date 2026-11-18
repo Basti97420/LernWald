@@ -25,6 +25,7 @@ def anlegen(pfad, saat=1):
 
 def befuellen(col, saat=1):
     rnd = random.Random(saat)
+    lang = random.Random(saat + 99)  # eigene Folge für lange Intervalle, damit sich der Rest nicht verschiebt
     basic = col.models.by_name("Basic") or col.models.by_name("Basis") or col.models.current()
     heute = col.sched.today
     for name, anzahl, anteile, faellig, krank, aus in STAPEL:
@@ -48,6 +49,8 @@ def befuellen(col, saat=1):
             lapses = rnd.randint(8, 14) if rnd.random() < krank else rnd.randint(0, 1)
             if rnd.random() < aus:
                 queue = -1
+            if art == 4 and lang.random() < 0.5:  # bis fast 3 Jahre: Hochhäuser und Wolkenkratzer
+                ivl = lang.randint(400, 1000)
             if art == 1:
                 due = 0
             col.db.execute("update cards set type=?, queue=?, ivl=?, due=?, lapses=? where id=?",

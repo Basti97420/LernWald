@@ -18,6 +18,9 @@ JUNG_BIS = 21           # Intervall in Tagen, ab dem eine Karte als reif gilt (w
 ALT_AB = 90             # Intervall in Tagen für die größte Stufe
 ALT_MAX_FEHLER = 1      # die größte Stufe darf höchstens so oft vergessen worden sein
 KRANK_AB_FEHLER = 8     # so oft vergessen = krank bzw. baufällig (Ankis Standard für Leeches)
+# Über der größten Stufe wächst ein Haus weiter, je länger das Intervall (also je öfter die Karte hintereinander
+# richtig war): (Intervall ab, höchstens so oft vergessen) für Hochhaus, hohes Hochhaus, Wolkenkratzer
+HOCH_AB = ((180, 1), (365, 0), (730, 0))
 
 GESUND_AB = 70          # Gesundheit in Prozent, ab der ein Gebiet als gesund zählt
 VERWILDERT_UNTER = 40
@@ -134,6 +137,19 @@ def stufe(typ, queue, ivl, lapses, leech):
     return "baum"
 
 
+def hoehe(s, ivl, lapses):
+    """Wie hoch ein Haus über der größten Stufe hinaus wächst: 0 (normal) bis len(HOCH_AB)."""
+    if s != "alt":
+        return 0
+    return sum(1 for ab, fehler in HOCH_AB if ivl >= ab and lapses <= fehler)
+
+
+def sicherheit(zahlen):
+    """Wie sicher ein Gebiet sitzt, 0–100: Anteil reifer Karten an allen (ohne ausgesetzte); None ohne Karten."""
+    alle = sum(zahlen[s] for s in STUFEN if s != "stumpf")
+    return round(100 * (zahlen["baum"] + zahlen["alt"]) / alle) if alle else None
+
+
 def gesundheit(zahlen, welk):
     """Gesundheit 0–100 aus den Stufen; None, wenn noch nichts gelernt ist."""
     gelernt = sum(zahlen[s] for s in ("setzling", "jung", "baum", "alt", "krank"))
@@ -166,15 +182,19 @@ def _karten(col, ids):
 
 def gebiet_berechnen(col, gebiet, heute, max_baeume):
     zahlen = dict.fromkeys(STUFEN, 0)
+    hoch = [0] * len(HOCH_AB)  # Hochhäuser je Höhe
     welk = 0
     baeume = []
     cids = col.find_cards(gebiet["suche"])
     for _cid, typ, queue, ivl, lapses, due, tags in _karten(col, cids):
         s = stufe(typ, queue, ivl, lapses, " leech " in " %s " % tags.lower())
         faellig = queue in (2, 3) and due < heute
+        h = hoehe(s, ivl, lapses)
         zahlen[s] += 1
         welk += faellig
-        baeume.append((s, faellig))
+        if h:
+            hoch[h - 1] += 1
+        baeume.append((s, faellig, h))
     if len(baeume) > max_baeume:
         # gleichmäßig ausdünnen, damit die Anteile stimmen
         schritt = len(baeume) / max_baeume
@@ -187,7 +207,9 @@ def gebiet_berechnen(col, gebiet, heute, max_baeume):
         "welk": welk,
         "gesundheit": g,
         "zustand": zustand(g),
-        "baeume": [[s, int(f)] for s, f in baeume],
+        "baeume": [[s, int(f), h] for s, f, h in baeume],  # Stufe, fällig, Höhe
+        "hoch": hoch,
+        "sicherheit": sicherheit(zahlen),
         "belohnungen": [],
         "_cids": set(cids),
     }
