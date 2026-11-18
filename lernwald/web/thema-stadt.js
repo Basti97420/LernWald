@@ -264,90 +264,26 @@
     },
   };
 
-  // --- Wachstum: alles hängt an den Einwohnern (berechnet in daten.py: je Haus nach Größe, fällige halb);
-  // die Mauer an der Sicherheit. Gezeichnet in iso-stadt.js.
-
-  // Einwohner je Haus wie in daten.py (BEWOHNER, BEWOHNER_HOCH): dort gehen die Leute auf die Straße
-  const BEWOHNER = { spross: 0, setzling: 0, jung: 1, baum: 3, alt: 6, krank: 1, stumpf: 0 }, BEWOHNER_HOCH = [12, 25, 50];
-  const hausBewohner = (b) => (b[2] ? BEWOHNER_HOCH[b[2] - 1] : BEWOHNER[b[0]] || 0) / (b[1] ? 2 : 1);
-
-  const GROESSE = [[0, "Weiler"], [50, "Dorf"], [300, "Kleinstadt"], [1000, "Stadt"], [3000, "Großstadt"], [8000, "Metropole"]];
-  // Meilensteine im Text: ab so vielen Einwohnern
-  const VERKEHR = [
-    [50, "Straßen mit Kutschen"], [300, "Eisenbahn"], [600, "erste Autos"], [1000, "Straßenbahn und Bahnhof"],
-    [1500, "zweiter Zug"], [2700, "dritter Zug"], [3900, "vierter Zug"],
-  ];
-
-  // Wie viel unterwegs ist; alles wächst stufenlos mit den Einwohnern
-  function verkehr(g) {
-    const e = g.einwohner || 0;
-    if (g.zustand === "wiese") return { leute: 0, fahrzeuge: 0, autos: 0, trams: 0, zuege: 0, wagen: 0 };
-    const fahrzeuge = e >= 50 ? Math.min(40, Math.round(e / 70)) : 0;
-    return {
-      leute: Math.min(160, Math.round(e / 20)),                                 // gezeichnete Figuren
-      fahrzeuge,                                                               // Kutschen und Autos zusammen
-      autos: Math.round(fahrzeuge * Math.max(0, Math.min(0.9, (e - 600) / 3000))),  // ab 600 erste Autos
-      trams: e >= 1000 ? Math.min(8, 1 + Math.floor((e - 1000) / 600)) : 0,
-      zuege: e >= 300 ? Math.min(4, 1 + Math.floor((e - 300) / 1200)) : 0,
-      wagen: Math.min(8, 3 + Math.floor(e / 1000)),                            // Wagen je Zug
-    };
-  }
-
-  // Stadtmauer nach der Sicherheit des Gebiets (Anteil reifer Karten, 0–100)
-  const MAUER = [
-    [15, "Holzpalisade"], [35, "niedrige Steinmauer"], [55, "Mauer mit Zinnen und Ecktürmen"],
-    [75, "hohe Mauer mit Tortürmen"], [90, "doppelter Mauerring mit Wassergraben"],
-  ];
-  const mauerStufe = (sicher) => MAUER.filter((m) => (sicher || 0) >= m[0]).length;  // 0 = keine Mauer
-
-  function groesse(g) {
-    if (g.zustand === "wiese") return "Bauland";
-    return GROESSE.filter((x) => (g.einwohner || 0) >= x[0]).pop()[1];
-  }
-
-  const zahl = (n) => Number(n).toLocaleString("de-DE");
-  const anzahl = (n, eins, mehr) => `${zahl(n)} ${n === 1 ? eins : mehr}`;
-
-  // Fortschritt und was als Nächstes kommt; nur im Lernwald-Fenster (nicht im Hintergrund)
-  function lebenText(g) {
-    if (g.zustand === "wiese") return "";
-    const e = g.einwohner || 0, k = GROESSE.filter((x) => e >= x[0]).length - 1, jetzt = GROESSE[k], naechste = GROESSE[k + 1];
-    let s = `<div class="fortschritt">`;
-    if (naechste) {
-      const anteil = Math.round(100 * (e - jetzt[0]) / (naechste[0] - jetzt[0]));
-      s += `<div class="balken"><span style="width:${anteil}%"></span></div>` +
-        `<b>${zahl(e)} Einwohner</b> · ${jetzt[1]} → <b>${naechste[1]} ab ${zahl(naechste[0])}</b> (noch ${zahl(naechste[0] - e)})`;
-    } else {
-      s += `<div class="balken"><span style="width:100%"></span></div><b>${zahl(e)} Einwohner</b> · ${jetzt[1]}`;
-    }
-    s += "</div>";
-    const v = verkehr(g), unterwegs = [];
-    if (v.fahrzeuge) unterwegs.push(anzahl(v.fahrzeuge - v.autos, "Kutsche", "Kutschen") + (v.autos ? ", " + anzahl(v.autos, "Auto", "Autos") : ""));
-    if (v.trams) unterwegs.push(anzahl(v.trams, "Straßenbahn", "Straßenbahnen"));
-    if (v.zuege) unterwegs.push(v.zuege === 1 ? `1 Zug mit ${v.wagen} Wagen` : `${v.zuege} Züge mit je ${v.wagen} Wagen`);
-    if (unterwegs.length) s += `<p>Unterwegs: ${unterwegs.join(" · ")}</p>`;
-    const kommt = VERKEHR.filter((x) => e < x[0]).slice(0, 2).map((x) => `${x[1]} ab ${zahl(x[0])}`);
-    if (kommt.length) s += `<p>Nächstes: ${kommt.join(" · ")} Einwohnern</p>`;
-    const m = mauerStufe(g.sicherheit), mNaechste = MAUER[m];
-    s += `<p>Stadtmauer: ${m ? MAUER[m - 1][1] : "keine"} – ${g.sicherheit || 0} % der Karten sitzen sicher` +
-      (mNaechste ? ` (${mNaechste[1]} ab ${mNaechste[0]} %)` : "") + "</p>";
-    if (g.hoch && g.hoch.some((x) => x)) {
-      s += `<p>Hochhäuser: ${zahl(g.hoch[0])} · hohe Hochhäuser: ${zahl(g.hoch[1])} · Wolkenkratzer: ${zahl(g.hoch[2])}</p>`;
-    }
-    const b = g.bald;
-    if (b) {
-      const teile = [];
-      if (b.haus) teile.push(`${anzahl(b.haus, "Hütte wird ein Haus", "Hütten werden Häuser")}`);
-      if (b.stadthaus) teile.push(`${anzahl(b.stadthaus, "Haus wird ein Stadthaus", "Häuser werden Stadthäuser")}`);
-      [["Stadthaus wächst zum Hochhaus", "Stadthäuser wachsen zu Hochhäusern"],
+  // --- Wachstum: Regeln in grundlagen.js (LW.wachstum), hier nur die Wörter der Stadt -----------------
+  const WACHSTUM = window.LW.wachstum({
+    wiese: "Bauland",
+    groessen: ["Weiler", "Dorf", "Kleinstadt", "Stadt", "Großstadt", "Metropole"],
+    einwohner: "Einwohner",
+    verkehr: ["Straßen mit Kutschen", "Eisenbahn", "erste Autos", "Straßenbahn und Bahnhof", "zweiter Zug", "dritter Zug", "vierter Zug"],
+    mauerName: "Stadtmauer",
+    keineMauer: "keine",
+    mauer: ["Holzpalisade", "niedrige Steinmauer", "Mauer mit Zinnen und Ecktürmen", "hohe Mauer mit Tortürmen",
+      "doppelter Mauerring mit Wassergraben"],
+    unterwegs: { langsam: ["Kutsche", "Kutschen"], schnell: ["Auto", "Autos"], gross: ["Straßenbahn", "Straßenbahnen"], zug: ["Zug", "Züge"] },
+    hoch: ["Hochhäuser", "hohe Hochhäuser", "Wolkenkratzer"],
+    bald: {
+      haus: ["Hütte wird ein Haus", "Hütten werden Häuser"],
+      stadthaus: ["Haus wird ein Stadthaus", "Häuser werden Stadthäuser"],
+      hoch: [["Stadthaus wächst zum Hochhaus", "Stadthäuser wachsen zu Hochhäusern"],
         ["Hochhaus wächst zum hohen Hochhaus", "Hochhäuser wachsen zu hohen Hochhäusern"],
-        ["hohes Hochhaus wächst zum Wolkenkratzer", "hohe Hochhäuser wachsen zu Wolkenkratzern"]].forEach(([eins, mehr], i) => {
-        if (b.hochhaus[i]) teile.push(anzahl(b.hochhaus[i], eins, mehr));
-      });
-      if (teile.length) s += `<p class="bald">Beim nächsten richtigen Wiederholen (geschätzt): ${teile.join(", ")}.</p>`;
-    }
-    return s;
-  }
+        ["hohes Hochhaus wächst zum Wolkenkratzer", "hohe Hochhäuser wachsen zu Wolkenkratzern"]],
+    },
+  });
 
   function kartenDeko(R) {  // Wege durch das Dorf auf der Gesamtkarte
     return `<path d="M${f(-R * 0.95)},${f(R * 0.12)} Q0,${f(-R * 0.12)} ${f(R * 0.95)},${f(-R * 0.02)} M${f(-R * 0.1)},${f(-R * 0.8)} Q${f(R * 0.12)},0 ${f(-R * 0.02)},${f(R * 0.8)}"` +
@@ -405,13 +341,13 @@
     nochKeine: (min) => `Noch keine Sehenswürdigkeiten – sie entstehen ab ${min} reifen Häusern.`,
     nurGesund: "Sehenswürdigkeiten entstehen nur in lebendigen Gebieten.",
     leer: "Noch keine Dörfer.",
-    groesse,
-    lebenText,
+    groesse: WACHSTUM.groesse,
+    lebenText: WACHSTUM.lebenText,
     kartenDeko,
     zentriert: true,
     ausbauText,
     // für die Ansicht von oben (iso-stadt.js, setzt szene)
-    teile: { WAND, DACH, WAND_W, DACH_W, GLAS, STEIN, GOLD, verkehr, mauerStufe, hausBewohner, laterne, bank },
+    teile: { WAND, DACH, WAND_W, DACH_W, GLAS, STEIN, GOLD, laterne, bank },
     leuteText: "Bewohner",
     pflasterTitel: "Pflasterstraße",
   };

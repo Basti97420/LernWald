@@ -7,11 +7,11 @@ Jeder Stapel wird ein Gebiet, jede Karte ein Haus bzw. ein Baum. Neue Karten sin
 werden Stadthäuser, und Karten, die du lange immer wieder richtig weißt, wachsen zu Hochhäusern und
 Wolkenkratzern. Je mehr gut gelernte Häuser, desto mehr Einwohner: Leute auf den Straßen, Kutschen und Autos,
 Straßenbahnen und Züge. Die Stadtmauer wird massiver, je sicherer der Stapel sitzt. Fällige Karten lassen
-die Stadt verwildern, gesunde Gebiete bekommen Sehenswürdigkeiten bzw. Tiere. Im Wald wachsen Bäume, Tiere
-ziehen ein.
+die Stadt verwildern, gesunde Gebiete bekommen Sehenswürdigkeiten. Der Wald kann dasselbe mit Bäumen: vom
+Sprössling bis zum Urwaldriesen, mit Wanderern und Tieren, Reitern, Waldbahn und Hecken statt Mauern.
 
-- die Stadt von oben, zum Zoomen und Verschieben; überall Bewegung (Vögel, Wolken, Verkehr, Wetter, Wind)
-- in der Stadt unter jedem Gebiet: wie weit es bis zur nächsten Größe ist und welche Häuser bald aufsteigen
+- Stadt und Wald von oben, zum Zoomen und Verschieben; überall Bewegung (Vögel, Wolken, Verkehr, Wetter, Wind)
+- unter jedem Gebiet: wie weit es bis zur nächsten Größe ist und welche Häuser bzw. Bäume bald aufsteigen
 - die Landschaft blass als Hintergrund der Stapelübersicht und hinter dem geöffneten Stapel
 - Chronik deiner Lerntage und ein Album mit allem, was du schon freigeschaltet hast
 
@@ -81,9 +81,23 @@ und die Tageszeit, zu der du meistens lernst, das Licht. Nachts leuchten die Fen
 Im Fenster steht unter jedem Gebiet, wie weit es bis zur nächsten Größe ist, was als Nächstes kommt und welche
 Häuser beim nächsten richtigen Wiederholen voraussichtlich aufsteigen.
 
-**Im Wald** gilt dasselbe für die Bäume (Sprössling bis dicker alter Baum, kranker Baum, Baumstumpf). Lebendige
-Gebiete locken Tiere an, von der Kohlmeise (1 lebendiges Gebiet) bis zum Wolf (10). Je 3 Lerntage blüht eine
-Blume, je 30 steht eine Bank.
+## Und der Wald?
+
+Der Wald wächst nach genau denselben Regeln und Zahlen, nur mit anderen Bildern:
+
+| Stadt | Wald |
+|---|---|
+| Bauplatz, Baustelle, Hütte, Haus, Stadthaus | Sprössling, Setzling, junger Baum, Baum, dicker alter Baum |
+| Hochhaus, hohes Hochhaus, Wolkenkratzer | Riesenbaum, Mammutbaum, Urwaldriese |
+| baufälliges Haus, Ruine | kranker Baum, Baumstumpf |
+| Weiler, Dorf, Kleinstadt, Stadt, Großstadt, Metropole | Gehölz, Wäldchen, Wald, Forst, großer Forst, Urwald |
+| Leute auf den Straßen | Wanderer und Tiere auf den Waldwegen |
+| Kutschen, Autos, Straßenbahn | Reiter, Radfahrer, Holzfuhrwerke |
+| Eisenbahn und Bahnhof | Waldbahn und Försterei |
+| Holzpalisade bis doppelter Mauerring mit Wassergraben | Weidenzaun, Trockenmauer, Hecke mit Hochsitzen, hohe Hecke mit Aussichtstürmen, doppelte Hecke mit Bach |
+| Sehenswürdigkeiten auf dem Marktplatz | Tiere auf der Lichtung, von der Kohlmeise (1 lebendiges Gebiet) bis zum Wolf (10) |
+| Laternen (je 7 Lerntage), Bänke, Aquädukt | Blumen (je 3 Lerntage), Bänke, Waldsee (ab 200 Lerntagen) |
+| nachts leuchtende Fenster | nachts Glühwürmchen |
 
 ## Installieren
 

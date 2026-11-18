@@ -213,53 +213,12 @@
     const c = g.chronik || {};
     const zeit = D.chronik ? D.chronik.tageszeit : null;
     const wetter = c.quote == null ? "sonne" : c.quote >= 90 ? "sonne" : c.quote >= 80 ? "wolken" : "regen";
-    if (T.szene) {  // eigene Ansicht des Themas: die Stadt von oben (iso-stadt.js)
-      const iso = T.szene(g, { rnd, zeit, wetter, c, wachsen, hilfen: { dauer, figur, voegel } });
-      const fuellen = root.classList.contains("lw-hintergrund") ? "slice" : "meet";
-      const grund = T.nachbearbeiten ? "#f4ecd8" : iso.grund;
-      return { svg: `<svg class="szene von-oben" viewBox="${iso.viewBox}" preserveAspectRatio="xMidYMid ${fuellen}" style="background:${grund}">` +
-        `<g class="zeichnung">${N(iso.svg)}</g></svg>`, n: g.baeume.length, c, wetter, zeit };
-    }
-    const geo = { W: 1000, H: 620, HORIZONT: 190, WIESE: 90, zustand: g.zustand };  // vorne bleibt Platz für Tiere bzw. Bauten
-    const { W, H, HORIZONT, WIESE } = geo;
-    const boden = T.boden[g.zustand];
-    const himmel = g.zustand === "verwildert" || wetter === "regen" ? ["#c9cbc4", "#e6e2d4"] : HIMMEL[zeit] || HIMMEL.tag;
-    const n = g.baeume.length;
-    const plaetze = T.plaetze(g.baeume, rnd, geo);
-    const dinge = g.baeume.map((b, k) => Object.assign({ b }, plaetze[k]));
-    const belohnungen = (g.belohnungen || []).map((t, k, alle) =>
-      ({ t, x: (k + 0.5 + (rnd() - 0.5) * 0.5) * W / alle.length, y: H - WIESE * 0.45 + rnd() * WIESE * 0.3, s: T.belohnungGroesse }));
-    let s = `<defs><linearGradient id="himmel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${himmel[0]}"/><stop offset="1" stop-color="${himmel[1]}"/></linearGradient>
-      <linearGradient id="boden" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${boden[1]}"/><stop offset="1" stop-color="${boden[0]}"/></linearGradient></defs>
-      <rect x="-20" y="-20" width="${W + 40}" height="${HORIZONT + 40}" fill="url(#himmel)"/>
-      <path d="M0,${HORIZONT + 5} Q180,${HORIZONT - 55} 380,${HORIZONT - 5} T760,${HORIZONT - 20} T1000,${HORIZONT} L1000,${HORIZONT + 20} L0,${HORIZONT + 20} Z" fill="${boden[1]}" opacity=".55"/>
-      <rect x="-20" y="${HORIZONT}" width="${W + 40}" height="${H - HORIZONT + 20}" fill="url(#boden)"/>`;
-    s += gestirn(zeit, g.zustand !== "verwildert" && wetter !== "regen", rnd);
-    if (wetter !== "sonne" || g.zustand === "verwildert") s += wolken(wetter === "regen" ? 5 : 3, wetter === "regen", rnd);
-    const ausbau = T.ausbau ? T.ausbau(c.lerntage || 0, rnd, geo) : {};
-    s += ausbau.hinten || "";
-    if (T.vorne) s += T.vorne(geo);
-    s += plaetze.deko || "";
-    const alle = dinge.sort((a, b) => a.y - b.y).concat(belohnungen.sort((a, b) => a.y - b.y));
-    const jedes = Math.max(1, Math.ceil(n / 120));  // höchstens rund 120 Bäume wiegen sich, sonst wird es zäh
-    alle.forEach((d, k) => {
-      let bild = d.t ? T.belohnung(d.t) : T.bild(d.b[0], d.b[1], rnd);
-      if (T.wiegen && !d.t && k % jedes === 0) bild = `<g class="lw-wiegen" style="${dauer(4 + rnd() * 3, rnd)}">${bild}</g>`;
-      if (wachsen) bild = `<g class="lw-wachsen" style="animation-delay:${f(0.1 + 1.4 * k / Math.max(1, alle.length))}s">${bild}</g>`;
-      s += `<g transform="translate(${f(d.x)},${f(d.y)}) scale(${f(d.s)})">${bild}</g>`;
-    });
-    s += ausbau.vorne || "";
-    // Bewohner: so viele wie heute in diesem Gebiet wiederholt wurde (höchstens 30)
-    const leute = [];
-    for (let k = 0; k < Math.min(30, c.heute || 0); k++) leute.push({ x: 20 + rnd() * (W - 40), y: H - WIESE + 16 + rnd() * (WIESE - 22) });
-    leute.sort((a, b) => a.y - b.y).forEach((p) => {
-      s += `<g transform="translate(${f(p.x)},${f(p.y)}) scale(1.5)">${geher(rnd, 15 + rnd() * 35)}</g>`;
-    });
-    if ((c.serie || 0) >= 7) s += wimpel(geo, rnd);
-    if (wetter === "regen") s += regen(geo, rnd);
-    if (wetter !== "regen" && zeit !== "nacht") s += voegel(-60, 40, W + 120, 90, g.zustand === "gesund" ? 7 : 3, rnd);
-    return { svg: `<svg class="szene" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice"><g class="zeichnung">${N(s)}</g></svg>`,
-      n, c, wetter, zeit };
+    // Ansicht von oben (iso.js) mit dem Stil des Themas (iso-stadt.js, iso-wald.js)
+    const iso = T.szene(g, { rnd, zeit, wetter, c, wachsen, hilfen: { dauer, figur, voegel } });
+    const fuellen = root.classList.contains("lw-hintergrund") ? "slice" : "meet";
+    const grund = T.nachbearbeiten ? "#f4ecd8" : iso.grund;
+    return { svg: `<svg class="szene von-oben" viewBox="${iso.viewBox}" preserveAspectRatio="xMidYMid ${fuellen}" style="background:${grund}">` +
+      `<g class="zeichnung">${N(iso.svg)}</g></svg>`, n: g.baeume.length, c, wetter, zeit };
   }
 
   function zeigeGebiet(i) {
@@ -289,13 +248,6 @@
     return `animation-duration:${f(sek)}s;animation-delay:-${f(rnd() * sek)}s`;
   }
 
-  // Jemand geht hin und her (Richtung zufällig) und wippt dabei
-  function geher(rnd, weg) {
-    const bild = T.bewohner ? T.bewohner(rnd) : figur(rnd);
-    return `<g${rnd() < 0.5 ? ' transform="scale(-1,1)"' : ""}><g class="lw-gehen" style="--weg:${f(weg)}px;${dauer(14 + rnd() * 16, rnd)}">` +
-      `<g class="lw-wippen" style="${dauer(0.5 + rnd() * 0.2, rnd)}">${bild}</g></g></g>`;
-  }
-
   // Vögel ziehen mit Flügelschlag von links nach rechts über einen Streifen (x, y, Breite, Höhe)
   function voegel(x, y, breite, hoehe, anzahl, rnd) {
     let s = "";
@@ -310,69 +262,13 @@
 
   // --- Wetter, Licht, Bewohner (aus der Statistik) ----------------------------
 
-  const HIMMEL = {
-    morgen: ["#a9d4ef", "#fbe3cc"], tag: ["#9fd0ef", "#e4f3fb"],
-    abend: ["#e39a63", "#f7d9a8"], nacht: ["#1f2d4d", "#4a5a80"],
-  };
   const ZEIT_TEXT = { morgen: "morgens", tag: "tagsüber", abend: "abends", nacht: "nachts" };
   const WETTER_TEXT = { sonne: "Sonne", wolken: "Wolken", regen: "Regen" };
-
-  function gestirn(zeit, klar, rnd) {
-    if (zeit === "nacht") {
-      let s = `<circle cx="860" cy="70" r="20" fill="#f4f0d2"/><circle cx="870" cy="64" r="17" fill="#2a3a5e"/>`;
-      for (let i = 0; i < 40; i++) {
-        s += `<circle cx="${f(rnd() * 1000)}" cy="${f(rnd() * 170)}" r="${f(0.6 + rnd())}" fill="#f4f0d2" opacity=".8" class="lw-stern" style="${dauer(1.5 + rnd() * 3, rnd)}"/>`;
-      }
-      return s;
-    }
-    if (!klar) return "";
-    const y = zeit === "abend" ? 150 : zeit === "morgen" ? 120 : 70, x = zeit === "morgen" ? 120 : 880;
-    return `<circle cx="${x}" cy="${y}" r="28" fill="${zeit === "abend" ? "#f6b26b" : "#fff3b0"}" opacity=".9"/>`;
-  }
-
-  function wolke(x, y, s, farbe) {
-    return `<g transform="translate(${f(x)},${f(y)}) scale(${f(s)})"><ellipse cx="0" cy="0" rx="34" ry="12" fill="${farbe}"/>` +
-      `<circle cx="-14" cy="-6" r="13" fill="${farbe}"/><circle cx="6" cy="-12" r="17" fill="${farbe}"/><circle cx="22" cy="-4" r="11" fill="${farbe}"/></g>`;
-  }
-
-  function wolken(n, dunkel, rnd) {
-    let s = "";
-    for (let i = 0; i < n; i++) {
-      s += `<g class="lw-wolke" style="--weg:${f(30 + rnd() * 60)}px;${dauer(30 + rnd() * 30, rnd)}">` +
-        wolke(80 + (i + rnd() * 0.6) * 860 / n, 45 + rnd() * 70, 0.9 + rnd() * 0.8, dunkel ? "#a9adb0" : "#f7f7f2") + "</g>";
-    }
-    return s;
-  }
-
-  function regen(g, rnd) {
-    let d = "";
-    for (let i = 0; i < 260; i++) {
-      const x = rnd() * g.W, y = 60 + rnd() * (g.H - 60);
-      d += `M${f(x)},${f(y)} l-3,10 `;
-    }
-    return `<path d="${d}" stroke="#7d93a8" stroke-width="1" opacity=".45" fill="none" class="lw-regen"/>`;
-  }
 
   function figur(r) {  // Bewohner bzw. Wanderer
     const k = wahl(r, ["#c8322b", "#2f6fb3", "#3e8e41", "#8a5a34", "#6b4a8a", "#d9b434"]);
     return schatten(3.5) + `<path d="M-2.6,0 L-1.6,-7 L1.6,-7 L2.6,0 Z" fill="${k}"/>` +
       `<rect x="-1.9" y="-11.5" width="3.8" height="5" rx="1.2" fill="${k}"/><circle cx="0" cy="-13.6" r="2.1" fill="#e9c9a8"/>`;
-  }
-
-  function wimpel(g, rnd) {  // Wimpelkette ab 7 Tagen Serie im Gebiet
-    const y0 = g.H - 8, oben = y0 - 70, farben = ["#c8322b", "#f2d640", "#2f6fb3", "#3e8e41"];
-    let s = "";
-    [30, 970].forEach((x) => { s += `<path d="M${x},${y0} L${x},${oben}" stroke="#6b4a2b" stroke-width="2.4"/>`; });
-    const n = 34, punkte = [];
-    for (let i = 0; i <= n; i++) {
-      const t = i / n;
-      punkte.push([30 + t * 940, oben + 4 + Math.sin(Math.PI * t) * 34]);
-    }
-    s += `<path d="M${punkte.map((p) => p.map(f).join(",")).join(" L")}" stroke="#5a4a3a" stroke-width=".8" fill="none"/>`;
-    punkte.slice(1, -1).forEach((p, i) => {
-      s += `<path d="M${f(p[0] - 6)},${f(p[1])} L${f(p[0] + 6)},${f(p[1])} L${f(p[0])},${f(p[1] + 12)} Z" fill="${farben[i % 4]}" class="lw-wimpel" style="${dauer(1.6 + rnd(), rnd)}"/>`;
-    });
-    return s;
   }
 
   function gebietChronik(c, wetter, zeit) {

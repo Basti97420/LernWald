@@ -4,7 +4,7 @@
 // Thema „Wald“: Karten sind Bäume, gesunde Gebiete locken Tiere an.
 (function () {
   "use strict";
-  const { f, wahl, grenze, schatten, auge } = window.LW;
+  const { f, wahl, schatten, auge } = window.LW;
 
   // --- Bäume (Seitenansicht, Fußpunkt bei 0,0) ------------------------------
 
@@ -172,46 +172,35 @@
       `<path d="M19,-19 L26,-18 L19,-17.5 Z" fill="#c9c9c0"/><circle cx="27" cy="-21" r="1.1" fill="#1b1b1b"/>` + auge(18.5, -24),
   };
 
-  // Plätze mit „bestem Kandidaten“ verteilen, damit es nach Wald und nicht nach Rauschen aussieht
-  function plaetze(baeume, rnd, g) {
-    const n = baeume.length, liste = [];
-    const versuche = n > 800 ? 1 : 6;
-    for (let k = 0; k < n; k++) {
-      let best = null, bestD = -1;
-      for (let v = 0; v < versuche; v++) {
-        const x = 20 + rnd() * (g.W - 40), y = g.HORIZONT + 8 + Math.pow(rnd(), 0.8) * (g.H - g.HORIZONT - g.WIESE);
-        let d = Infinity;
-        for (const p of liste) d = Math.min(d, Math.hypot(p.x - x, (p.y - y) * 1.6));
-        if (d > bestD) { bestD = d; best = { x, y }; }
-      }
-      liste.push(best);
-    }
-    const dichte = grenze(Math.sqrt((g.W * (g.H - g.HORIZONT)) / (Math.max(n, 1) * 1500)), 0.4, 1.5);
-    const tiefe = (y) => 0.55 + ((y - g.HORIZONT) / (g.H - g.HORIZONT)) * 0.8;
-    return liste.map((p) => ({ x: p.x, y: p.y, s: tiefe(p.y) * dichte }));
-  }
-
-  // Ausbau nach Lerntagen: je 3 Tage eine Blume auf der Lichtung, je 30 Tage eine Bank
-  function ausbau(tage, rnd, g) {
-    const farben = ["#f2d640", "#e86a8a", "#ffffff", "#9b7fd1", "#f08a3c"];
-    let vorne = "";
-    for (let i = 0; i < Math.min(60, Math.floor(tage / 3)); i++) {
-      const x = 10 + rnd() * (g.W - 20), y = g.H - g.WIESE + 10 + rnd() * (g.WIESE - 14);
-      vorne += `<g transform="translate(${f(x)},${f(y)})"><path d="M0,0 L0,-6" stroke="#4f8a3a" stroke-width=".9"/>` +
-        `<circle cx="0" cy="-7" r="2.2" fill="${farben[i % farben.length]}"/><circle cx="0" cy="-7" r=".8" fill="#c9a640"/></g>`;
-    }
-    for (let i = 0; i < Math.min(4, Math.floor(tage / 30)); i++) {
-      const x = (i + 0.5) * g.W / Math.min(4, Math.floor(tage / 30));
-      vorne += `<g transform="translate(${f(x)},${f(g.H - g.WIESE + 14)}) scale(1.3)">` +
-        `<path d="M-8,0 L-8,-5 M8,0 L8,-5" stroke="#5a3b22" stroke-width="1.2"/><rect x="-9" y="-6" width="18" height="2" fill="#7a5530"/></g>`;
-    }
-    return { vorne };
-  }
-
+  // Ausbau nach Lerntagen: je 3 Tage eine Blume auf der Lichtung, je 30 Tage eine Bank, ab 200 ein Waldsee
+  // (gezeichnet in iso-wald.js)
   function ausbauText(tage) {
     const blumen = Math.min(60, Math.floor(tage / 3)), baenke = Math.min(4, Math.floor(tage / 30));
-    return `${blumen} Blumen auf der Lichtung` + (baenke ? `, ${baenke} ${baenke === 1 ? "Bank" : "Bänke"}` : " (erste Bank ab 30 Lerntagen)");
+    return `${blumen} Blumen auf der Lichtung` + (baenke ? `, ${baenke} ${baenke === 1 ? "Bank" : "Bänke"}` : " (erste Bank ab 30 Lerntagen)") +
+      (tage >= 200 ? ", ein Waldsee" : baenke ? " (Waldsee ab 200 Lerntagen)" : "");
   }
+
+  // --- Wachstum: Regeln in grundlagen.js (LW.wachstum), hier nur die Wörter des Waldes -----------------
+  const WACHSTUM = window.LW.wachstum({
+    wiese: "Wiese",
+    groessen: ["Gehölz", "Wäldchen", "Wald", "Forst", "großer Forst", "Urwald"],
+    einwohner: "Bewohner",
+    verkehr: ["Waldwege mit Reitern", "Waldbahn", "erste Radfahrer", "Holzfuhrwerke und Försterei", "zweite Waldbahn",
+      "dritte Waldbahn", "vierte Waldbahn"],
+    mauerName: "Waldrand",
+    keineMauer: "offen",
+    mauer: ["Weidenzaun", "Trockenmauer", "Hecke mit Hochsitzen", "hohe Hecke mit Aussichtstürmen", "doppelte Hecke mit Bach"],
+    unterwegs: { langsam: ["Reiter", "Reiter"], schnell: ["Radfahrer", "Radfahrer"], gross: ["Holzfuhrwerk", "Holzfuhrwerke"],
+      zug: ["Waldbahn", "Waldbahnen"] },
+    hoch: ["Riesenbäume", "Mammutbäume", "Urwaldriesen"],
+    bald: {
+      haus: ["junger Baum wird ein Baum", "junge Bäume werden Bäume"],
+      stadthaus: ["Baum wird ein alter Baum", "Bäume werden alte Bäume"],
+      hoch: [["alter Baum wächst zum Riesenbaum", "alte Bäume wachsen zu Riesenbäumen"],
+        ["Riesenbaum wächst zum Mammutbaum", "Riesenbäume wachsen zu Mammutbäumen"],
+        ["Mammutbaum wächst zum Urwaldriesen", "Mammutbäume wachsen zu Urwaldriesen"]],
+    },
+  });
 
   window.LW.themen.wald = {
     titel: "Lernwald",
@@ -240,12 +229,11 @@
     nochKeine: (min) => `Noch keine Tiere – sie kommen ab ${min} reifen Bäumen.`,
     nurGesund: "Tiere ziehen nur in gesunde Gebiete.",
     leer: "Noch keine Waldgebiete.",
-    groesse: () => "",
-    plaetze,
+    groesse: WACHSTUM.groesse,
+    lebenText: WACHSTUM.lebenText,
     zentriert: false,
-    wiegen: true,  // Bäume wiegen sich im Wind (lernwald.js, bewegung.css)
-    ausbau,
     ausbauText,
+    teile: { LAUB, NADEL, WELK, RINDE, stamm, krone, nadelbaum },  // für die Ansicht von oben (iso-wald.js)
     leuteText: "Wanderer",
     pflasterTitel: "Waldweg",
   };

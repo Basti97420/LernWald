@@ -30,7 +30,7 @@ Karten dieses Stapels.
 ### Bewegung
 
 Nach dem Vorbild von Capriccio (emollick, MIT; kein Code übernommen) bewegen sich die Bilder: Vögel ziehen mit
-Flügelschlag, Bewohner gehen wippend hin und her, Wolken treiben, Sterne funkeln, Laternen flackern, Wimpel wehen,
+Flügelschlag, Bewohner gehen wippend hin und her, Wolken treiben, Laternen flackern, nachts blinken Glühwürmchen und Antennenlichter, Wimpel wehen,
 im Wald wiegen sich die Bäume, Regen fällt. Beim Öffnen eines Gebiets wachsen Bäume bzw. Häuser nacheinander aus
 dem Boden. Alles in `web/bewegung.css`, Dauer und Versatz je Element setzt `lernwald.js`. Abschaltbar in den
 Einstellungen; bei „weniger Bewegung“ im System steht alles still.
@@ -38,12 +38,19 @@ Einstellungen; bei „weniger Bewegung“ im System steht alles still.
 Öffnen über **Werkzeuge → Stadt** bzw. **Wald** oder den gleichnamigen Knopf in der oberen Leiste. Einstellungen über den Knopf im
 Fenster oder **Werkzeuge → Add-ons → Lernwald → Einstellungen**.
 
-### Stadt von oben
+### Ansicht von oben (Stadt und Wald)
 
-Die Stadt (und die Tusche-Stadt) zeigt ein Gebiet isometrisch von oben (`web/iso-stadt.js`): Vom Marktplatz
-mit den Sehenswürdigkeiten wächst sie in alle Richtungen, Häuser stehen auf Parzellen zwischen einem
-Straßengitter (jede dritte Reihe ist Straße), die größten in der Mitte. Mausrad zoomt, Ziehen verschiebt,
-Doppelklick stellt zurück. Nachts leuchten Fenster.
+Alle Themen zeigen ein Gebiet isometrisch von oben. `web/iso.js` ist die gemeinsame Zeichenmaschine (Raster,
+Quader, Dächer, Wege, Leute, Fahrzeuge, Bahn, Mauerringe, Wetter, Ausschnitt); was gezeichnet wird, liefert
+das Thema als Stil: `web/iso-stadt.js` (Häuser, Kutschen, Autos, Straßenbahn, Stadtmauer, Laternen, Aquädukt)
+und `web/iso-wald.js` (Bäume bis Urwaldriese, Wanderer und Tiere, Reiter, Radfahrer, Holzfuhrwerke, Waldbahn
+mit Försterei, Hecken mit Hochsitzen, Blumen, Waldsee, Glühwürmchen). Vom Platz in der Mitte wächst das Gebiet
+in alle Richtungen, Häuser bzw. Bäume stehen auf Parzellen zwischen einem Wegegitter (jede dritte Reihe ist
+Weg), die größten in der Mitte. Mausrad zoomt, Ziehen verschiebt, Doppelklick stellt zurück.
+
+Die Wachstumsregeln (Einwohner je Haus, Größe, Verkehr, Mauerstufen, Fortschrittstext) stehen einmal in
+`web/grundlagen.js` (`LW.wachstum`, `LW.verkehr`, `LW.mauerStufe`, `LW.hausBewohner`); jedes Thema gibt nur
+seine Wörter dazu (`WACHSTUM` in `thema-stadt.js` bzw. `thema-wald.js`). Die Zahlen unten gelten für beide.
 
 **Hochhäuser:** Ein Stadthaus (Intervall ab 90 Tagen, höchstens einmal vergessen) wächst weiter, je öfter die Karte
 hintereinander richtig war: ab 180 Tagen Intervall ein Hochhaus, ab 365 Tagen ohne Fehler ein hohes Hochhaus,
@@ -91,9 +98,9 @@ Striche leicht zittern. Die Sehenswürdigkeiten sind dieselben wie in der Stadt.
 |---|---|
 | Lerntage im Gebiet | Ausbau: Stadt je 7 Tage eine Laterne, je 30 eine Bank, ab 200 Aquädukt; Wald je 3 Tage eine Blume, je 30 eine Bank |
 | Serie im Gebiet ab 7 Tagen | Wimpelkette über dem Platz |
-| Wiederholungen heute im Gebiet | so viele Bewohner bzw. Wanderer (höchstens 30) |
+| Wiederholungen heute im Gebiet | so viele Leute zusätzlich auf den Wegen (höchstens 30) |
 | Trefferquote 30 Tage im Gebiet | Wetter: ab 90 % Sonne, ab 80 % Wolken, darunter Regen |
-| meist gelernt um (ganze Sammlung) | Licht: Morgen, Tag, Abend (Abendhimmel), Nacht (Mond und Sterne) |
+| meist gelernt um (ganze Sammlung) | Licht: abends etwas dunkler, nachts dunkel mit leuchtenden Fenstern bzw. Glühwürmchen |
 | Lerntage der letzten 53 Wochen | Reiter „Chronik“: Pflasterstraße, ein Stein je Tag, dunkler bei mehr Wiederholungen, Lücke mit Gras ohne Lernen |
 | Meilensteine (Wiederholungen, Lerntage, Serie) | Denkmäler mit Datum in der Chronik |
 
@@ -108,18 +115,19 @@ Alle Grafiken sind SVG, im Code gezeichnet, keine fremden Bilder.
   - `daten.py` – Berechnung aus der Sammlung, Themen mit ihren Belohnungen (ohne Qt, getestet)
   - `ansicht.py` – Fenster mit Webansicht, Album
   - `einstellungen.py` – Dialog für Thema und Gebiete
-  - `web/grundlagen.js` – gemeinsame Hilfen; `web/thema-wald.js`, `web/thema-stadt.js` – Zeichnungen, Texte
-    und Anordnung je Thema; `web/thema-tusche.js` – zeichnet die Stadt als Kupferstich nach (`nachbearbeiten`,
-    `defs`); `web/iso-stadt.js` – die Stadt von oben (`szene`); `web/lernwald.js` – Karte, Gebiet, Chronik,
-    Album, Wetter und Bewohner, Zoomen
+  - `web/grundlagen.js` – gemeinsame Hilfen und Wachstumsregeln; `web/thema-wald.js`, `web/thema-stadt.js` –
+    Bilder für Legende, Album und Karte, Texte und Wörter je Thema; `web/iso.js` – Ansicht von oben;
+    `web/iso-stadt.js`, `web/iso-wald.js` – ihr Stil je Thema (`szene`); `web/thema-tusche.js` – zeichnet die
+    Stadt als Kupferstich nach (`nachbearbeiten`, `defs`); `web/lernwald.js` – Karte, Gebiet, Chronik, Album,
+    Vögel, Zoomen
 - `werkzeuge/` – Beispielsammlung, HTML-Vorschau, Paketieren, Test-Add-on für ein echtes Anki
 - `tests/` – Tests für `daten.py`
 
 Ein neues Thema braucht einen Eintrag in `THEMEN` (`daten.py`, Belohnungen mit Kennungen, die es noch nicht
 gibt), eine Datei `web/thema-NAME.js` mit denselben Feldern wie `thema-wald.js`, einen Eintrag in `SKRIPTE`
-(`ansicht.py`) und einen Text in `THEMENTEXT` (`einstellungen.py`). Optional: `ausbau`, `ausbauText`,
-`bewohner`, `leuteText`, `pflasterTitel`, `nachbearbeiten` und `defs` (siehe `thema-tusche.js`), `szene` für
-eine eigene Ansicht eines Gebiets (siehe `iso-stadt.js`, dann entfallen `plaetze`, `vorne` und `ausbau`).
+(`ansicht.py`), einen Text in `THEMENTEXT` (`einstellungen.py`), Wörter für `LW.wachstum` und einen Stil
+für die Ansicht von oben (`web/iso-NAME.js` nach dem Muster von `iso-wald.js`, setzt `szene`). Optional:
+`ausbauText`, `leuteText`, `pflasterTitel`, `nachbearbeiten` und `defs` (siehe `thema-tusche.js`).
 
 ## Entwickeln
 

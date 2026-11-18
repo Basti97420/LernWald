@@ -35,6 +35,8 @@
 @keyframes lw-funkeln { from { opacity: .9; } to { opacity: .2; } }
 #lernwald .lw-licht { animation: lw-flackern 2.6s steps(1) infinite; }
 @keyframes lw-flackern { 0% { opacity: 1; } 31% { opacity: .82; } 37% { opacity: 1; } 64% { opacity: .9; } 70% { opacity: 1; } }
+#lernwald .lw-blinken { animation: lw-blinken 1.4s ease-in-out infinite alternate; }  /* Antennenlicht, Glühwürmchen */
+@keyframes lw-blinken { from { opacity: 1; } to { opacity: .1; } }
 #lernwald .lw-wimpel { animation: lw-wehen ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 0; }
 @keyframes lw-wehen { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
 
