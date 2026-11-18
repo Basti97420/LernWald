@@ -70,21 +70,6 @@ svg.pflaster { width: 100%; max-width: 980px; display: block; }
 .tabelle th, .tabelle td { padding: 3px 10px; border-bottom: 1px solid var(--rand); text-align: left; }
 .tabelle .zahl { text-align: right; font-variant-numeric: tabular-nums; }
 
-/* Tusche-Stadt: Papier, Tinte, zittrige Linien */
-#lernwald.thema-tusche { --text: #2b2118; --leise: #6e5f4b; --flaeche: #efe6d0; --karte: #f4ecd8; --rand: #b9a888; --gruen: #5a3b22;
-  background: var(--flaeche); color: var(--text); font-family: Georgia, "Times New Roman", serif; }
-.thema-tusche header h1 { font-variant: small-caps; letter-spacing: .04em; }
-.thema-tusche .hinweis { background: #f4ecd8; border: 1px solid #b9a888; color: #2b2118; }
-.thema-tusche svg.karte, .thema-tusche svg.szene { background: #f4ecd8; box-shadow: inset 0 0 60px rgba(90, 60, 20, .25); }
-.thema-tusche .zeichnung { filter: url(#lw-zittern); }
-.thema-tusche .zeichnung :is(rect, path, circle, ellipse)[fill]:not([stroke]):not([fill="none"]):not([fill="url(#lw-schatten)"]) {
-  stroke: #2b2118; stroke-width: .8px; vector-effect: non-scaling-stroke; }
-.thema-tusche .gras { stroke: #2b2118; opacity: .5; }
-.thema-tusche .schild rect { fill: #f4ecd8; stroke: #2b2118; }
-.thema-tusche .schild text { fill: #2b2118; font-family: Georgia, serif; }
-.thema-tusche .zustand { background: none !important; color: #2b2118; border: 1px solid #2b2118; }
-.thema-tusche button.an { background: #2b2118; border-color: #2b2118; color: #f4ecd8; }
-
 /* Fortschritt der Stadt (Einwohner bis zur nächsten Größe) */
 .fortschritt { margin: 6px 0 8px; max-width: 460px; }
 .fortschritt .balken { height: 8px; margin-bottom: 4px; border-radius: 4px; background: var(--karte); border: 1px solid var(--rand); overflow: hidden; }

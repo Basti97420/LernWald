@@ -12,6 +12,17 @@ CFG = os.environ.get("LERNWALD_CFG")  # JSON: Einstellungen, die vor dem Öffnen
 sys.path.insert(0, os.environ["LERNWALD_WERKZEUGE"])
 
 
+# Misst 3 Sekunden lang Bilder pro Sekunde und das längste Stocken (ms); Ergebnis in window.__lwMessung
+MESSEN = """window.__lwMessung = null; (function () { let n = 0, max = 0, last = performance.now(); const t0 = last;
+  function f(t) { n++; max = Math.max(max, t - last); last = t;
+    if (t - t0 < 3000) requestAnimationFrame(f); else window.__lwMessung = n / ((t - t0) / 1000) + " Bilder/s, längstes Stocken " + Math.round(max) + " ms"; }
+  requestAnimationFrame(f); })();"""
+
+
+def _messung(web, name):
+    web.evalWithCallback("window.__lwMessung", lambda m: print("MESSUNG", name, m, flush=True))
+
+
 def _foto(widget, name):
     widget.grab().save(os.path.join(ZIEL, PRAEFIX + name))
     print("FOTO", name, flush=True)
@@ -33,9 +44,11 @@ def _start():
         name = os.environ.get("LERNWALD_STAPEL", "Arbeit")
         mw.col.decks.select(mw.col.decks.id_for_name(name))
         mw.moveToState("overview")  # geöffneter Stapel: sein Gebiet als Hintergrund
-        QTimer.singleShot(4000, schritt1b)
+        QTimer.singleShot(1500, lambda: mw.web.eval(MESSEN))
+        QTimer.singleShot(5000, schritt1b)
 
     def schritt1b():
+        _messung(mw.web, "Stapel")
         _foto(mw, "stapel-offen.png")
         mw.web.evalWithCallback("document.getAnimations().length",
                                 lambda n: print("ANIMATIONEN Stapel", n, flush=True))
@@ -56,10 +69,22 @@ def _start():
                                lambda n: print("ANIMATIONEN Gebiet", n, flush=True))
         w.web.evalWithCallback("[...document.querySelectorAll('.gebietinfo p, .fortschritt')].map((e) => e.innerText).join(' | ')",
                                lambda t: print("INFO", t, flush=True))
+        w.web.eval(MESSEN)
         QTimer.singleShot(4000, schritt3b)
 
     def schritt3b():
+        _messung(w.web, "Gebiet")
         _foto(w, "gebiet-spaeter.png")  # 4 Sekunden später: Züge, Kutschen und Leute sind weitergezogen
+        # Pause: Anki geht in den Hintergrund (vorgetäuscht), die Ansicht muss anhalten, danach weiterlaufen
+        frage = "document.getElementById('lernwald').classList.contains('lw-pause')"
+        echt = ansicht._im_vordergrund
+        ansicht._im_vordergrund = lambda: False
+        ansicht.anwendung_zustand()
+        w.web.evalWithCallback(frage, lambda an: print("PAUSE im Hintergrund", an, flush=True))
+        ansicht._im_vordergrund = lambda: True
+        ansicht.anwendung_zustand()
+        w.web.evalWithCallback(frage, lambda an: print("PAUSE im Vordergrund", an, flush=True))
+        ansicht._im_vordergrund = echt
         w.web.eval("lernwald.zeigeAlbum()")
         QTimer.singleShot(2000, schritt4)
 

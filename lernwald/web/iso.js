@@ -16,7 +16,7 @@
   const poly = (punkte, fill, extra) => `<path d="M${punkte.map(pt).join(" L")} Z" fill="${fill}"${extra || ""}/>`;
   const istWeg = (k) => ((k % 3) + 3) % 3 === 0;  // jede dritte Zeile und Spalte ist Straße bzw. Weg
   const PLATZ = 2;  // Platz in der Mitte: Kacheln -2 … 2 in beiden Richtungen
-  const FLACH = ' stroke="none"';  // Boden ohne Umriss (die Tusche-Stadt zieht sonst um jede Fläche eine Linie)
+  const FLACH = ' stroke="none"';  // Boden ohne Umriss
 
   // Farbe abdunkeln (k < 1) oder aufhellen (k > 1)
   function ton(farbe, k) {

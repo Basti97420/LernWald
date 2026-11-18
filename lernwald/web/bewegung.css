@@ -16,23 +16,13 @@
 }
 @keyframes lw-fluegel { from { transform: scaleY(1); } to { transform: scaleY(-.5); } }
 
-/* Bewohner gehen hin und her, drehen am Ende um und wippen beim Gehen */
-#lernwald .lw-gehen { animation: lw-gehen linear infinite; }
+/* Bewohner wippen beim Gehen (das Gehen selbst: lw-pendeln unten) */
 #lernwald .lw-wippen { animation: lw-wippen ease-in-out infinite alternate; }
-@keyframes lw-gehen {
-  0%   { transform: translateX(0) scaleX(1); }
-  48%  { transform: translateX(var(--weg)) scaleX(1); }
-  50%  { transform: translateX(var(--weg)) scaleX(-1); }
-  98%  { transform: translateX(0) scaleX(-1); }
-  100% { transform: translateX(0) scaleX(1); }
-}
 @keyframes lw-wippen { from { transform: translateY(0); } to { transform: translateY(-1.2px); } }
 
-/* Wolken treiben langsam, Sterne funkeln, Laternen flackern, Wimpel wehen */
+/* Wolken treiben langsam, Laternen flackern, Lichter und Glühwürmchen blinken, Wimpel wehen */
 #lernwald .lw-wolke { animation: lw-wolke ease-in-out infinite alternate; }
 @keyframes lw-wolke { from { transform: translateX(0); } to { transform: translateX(var(--weg)); } }
-#lernwald .lw-stern { animation: lw-funkeln ease-in-out infinite alternate; }
-@keyframes lw-funkeln { from { opacity: .9; } to { opacity: .2; } }
 #lernwald .lw-licht { animation: lw-flackern 2.6s steps(1) infinite; }
 @keyframes lw-flackern { 0% { opacity: 1; } 31% { opacity: .82; } 37% { opacity: 1; } 64% { opacity: .9; } 70% { opacity: 1; } }
 #lernwald .lw-blinken { animation: lw-blinken 1.4s ease-in-out infinite alternate; }  /* Antennenlicht, Glühwürmchen */
@@ -48,19 +38,12 @@
 #lernwald .lw-regen { animation: lw-regen .45s linear infinite; }
 @keyframes lw-regen { from { transform: translate(0, 0); } to { transform: translate(-6px, 20px); } }
 
-/* Stadt: Kutschen und Straßenbahn fahren durch, Züge fahren vorbei und dann ist eine Weile Ruhe,
-   Räder drehen sich, Dampf steigt aus der Lok */
-#lernwald .lw-fahren { animation: lw-fahren linear infinite; }
-@keyframes lw-fahren { from { transform: translateX(0); } to { transform: translateX(var(--weg)); } }
-#lernwald .lw-zug { animation: lw-zug linear infinite; }
-@keyframes lw-zug { 0% { transform: translateX(0); } 60%, 100% { transform: translateX(var(--weg)); } }
-#lernwald .lw-rad { animation: lw-rad .9s linear infinite; transform-box: fill-box; transform-origin: 50% 50%; }
-@keyframes lw-rad { to { transform: rotate(360deg); } }
+/* Dampf steigt aus der Lok */
 #lernwald .lw-dampf { animation: lw-dampf 1.6s ease-out infinite; transform-box: fill-box; transform-origin: 50% 50%; }
 @keyframes lw-dampf { from { transform: translate(0, 0) scale(.6); opacity: .9; }
   to { transform: translate(-14px, -16px) scale(2.2); opacity: 0; } }
 
-/* Stadt von oben: Fahrzeuge fahren einen Abschnitt und tauchen an den Enden auf bzw. ab, Züge fahren
+/* Von oben: Fahrzeuge fahren einen Abschnitt und tauchen an den Enden auf bzw. ab, Züge fahren
    durch und dann ist eine Weile Ruhe, Leute gehen hin und her (Weg über --dx, --dy) */
 #lernwald .lw-fahrt { animation: lw-fahrt linear infinite; }
 @keyframes lw-fahrt { 0% { transform: translate(0, 0); opacity: 0; } 8%, 92% { opacity: 1; }
@@ -82,4 +65,6 @@
 @keyframes lw-wachsen { from { transform: scale(.1, 0); opacity: 0; } 40% { opacity: 1; } to { transform: scale(1); } }
 
 #lernwald.lw-ruhig *, #lernwald.lw-ruhig *::before { animation: none !important; }
+/* Anki nicht im Vordergrund: alles hält an der Stelle an und läuft danach dort weiter */
+#lernwald.lw-pause * { animation-play-state: paused !important; }
 @media (prefers-reduced-motion: reduce) { #lernwald * { animation: none !important; } }

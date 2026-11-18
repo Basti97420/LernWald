@@ -9,11 +9,3 @@ body > *:not(#lernwald):not(script):not(#lernwald-defs) { position: relative; z-
 .lw-hintergrund .schild text { text-anchor: middle; fill: #2d3324; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
 .lw-hintergrund .schild .name { font-weight: 700; font-size: 16px; }
 .lw-hintergrund .schild .info { font-size: 11px; fill: #5b604f; }
-
-/* Tusche-Stadt */
-.lw-hintergrund.thema-tusche .zeichnung { filter: url(#lw-zittern); }
-.lw-hintergrund.thema-tusche .zeichnung :is(rect, path, circle, ellipse)[fill]:not([stroke]):not([fill="none"]):not([fill="url(#lw-schatten)"]) {
-  stroke: #2b2118; stroke-width: .8px; vector-effect: non-scaling-stroke; }
-.lw-hintergrund.thema-tusche .gras { stroke: #2b2118; opacity: .5; }
-.lw-hintergrund.thema-tusche .schild rect { fill: #f4ecd8; stroke: #2b2118; }
-.lw-hintergrund.thema-tusche .schild text { fill: #2b2118; font-family: Georgia, serif; }

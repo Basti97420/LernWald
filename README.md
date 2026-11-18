@@ -1,7 +1,7 @@
 # Lernwald
 
 Ein Add-on für [Anki](https://apps.ankiweb.net), das deinen Lernstand als Landschaft zeigt, die mit dem Lernen
-wächst: als **Stadt** (bunt oder als Kupferstich in Tusche) oder als **Wald**.
+wächst: als **Stadt** oder als **Wald**.
 
 Jeder Stapel wird ein Gebiet, jede Karte ein Haus bzw. ein Baum. Neue Karten sind Bauplätze, gut gelernte
 werden Stadthäuser, und Karten, die du lange immer wieder richtig weißt, wachsen zu Hochhäusern und
@@ -13,6 +13,7 @@ Sprössling bis zum Urwaldriesen, mit Wanderern und Tieren, Reitern, Waldbahn un
 - Stadt und Wald von oben, zum Zoomen und Verschieben; überall Bewegung (Vögel, Wolken, Verkehr, Wetter, Wind)
 - unter jedem Gebiet: wie weit es bis zur nächsten Größe ist und welche Häuser bzw. Bäume bald aufsteigen
 - die Landschaft blass als Hintergrund der Stapelübersicht und hinter dem geöffneten Stapel
+- ist Anki nicht im Vordergrund, steht alles still und kostet keine Rechenleistung
 - Chronik deiner Lerntage und ein Album mit allem, was du schon freigeschaltet hast
 
 Alle Bilder sind im Code gezeichnet, ohne fremde Grafiken.

@@ -33,7 +33,13 @@ Nach dem Vorbild von Capriccio (emollick, MIT; kein Code übernommen) bewegen si
 Flügelschlag, Bewohner gehen wippend hin und her, Wolken treiben, Laternen flackern, nachts blinken Glühwürmchen und Antennenlichter, Wimpel wehen,
 im Wald wiegen sich die Bäume, Regen fällt. Beim Öffnen eines Gebiets wachsen Bäume bzw. Häuser nacheinander aus
 dem Boden. Alles in `web/bewegung.css`, Dauer und Versatz je Element setzt `lernwald.js`. Abschaltbar in den
-Einstellungen; bei „weniger Bewegung“ im System steht alles still.
+Einstellungen; bei „weniger Bewegung“ im System steht alles still. Ist Anki nicht im Vordergrund, hält alles an
+und läuft danach an derselben Stelle weiter (`anwendung_zustand` in `ansicht.py`, Klasse `lw-pause`).
+
+**Last** (gemessen 18.11.2026, `MESSUNG` im Anki-Test, dazu im Browser auf dem Mac): Auf dem Mac läuft auch ein
+großer Wald mit 60 Bildern/s; die Bewegung kostet dabei etwa ein Viertel eines Kerns im Hauptfaden des Browsers.
+Kaum Wirkung hatten: Ruhendes als Bilder und Bewegtes als eigene HTML-Ebenen (Ebenen kosten selbst wieder),
+verschachteltes Gruppieren, Gehen und Wippen in einer Animation. Die Last hängt an der Zahl der Animationen.
 
 Öffnen über **Werkzeuge → Stadt** bzw. **Wald** oder den gleichnamigen Knopf in der oberen Leiste. Einstellungen über den Knopf im
 Fenster oder **Werkzeuge → Add-ons → Lernwald → Einstellungen**.
@@ -82,13 +88,8 @@ Die Lerntage bauen Laternen, Bänke und ab 200 ein Aquädukt. Fahrzeuge fahren j
 tauchen an den Enden auf und ab, damit sie richtig zwischen den Häusern liegen. Die letzte Fassung als
 Seitenansicht ist Commit `8be8de6`.
 
-### Tusche-Stadt
-
-Drittes Thema: dieselbe Stadt, gezeichnet wie ein Kupferstich (Vorbild für den Stil: Capriccio von emollick,
-MIT; davon ist kein Code übernommen). `web/thema-tusche.js` nimmt die Zeichnungen der Stadt und ersetzt jede
-Füllfarbe nach ihrer Helligkeit durch Papier oder eine von vier Schraffuren, Linien werden Tusche, Schatten
-schraffiert, der Himmel waagrecht liniert. Ein SVG-Filter (`feTurbulence` + `feDisplacementMap`) lässt die
-Striche leicht zittern. Die Sehenswürdigkeiten sind dieselben wie in der Stadt.
+Die Tusche-Stadt (Kupferstich-Stil) gab es bis 0.9.0; eingestellt wird sie seitdem zur Stadt (gleiche
+Sehenswürdigkeiten, das Album bleibt).
 
 ### Statistik im Bild
 
@@ -117,8 +118,7 @@ Alle Grafiken sind SVG, im Code gezeichnet, keine fremden Bilder.
   - `einstellungen.py` – Dialog für Thema und Gebiete
   - `web/grundlagen.js` – gemeinsame Hilfen und Wachstumsregeln; `web/thema-wald.js`, `web/thema-stadt.js` –
     Bilder für Legende, Album und Karte, Texte und Wörter je Thema; `web/iso.js` – Ansicht von oben;
-    `web/iso-stadt.js`, `web/iso-wald.js` – ihr Stil je Thema (`szene`); `web/thema-tusche.js` – zeichnet die
-    Stadt als Kupferstich nach (`nachbearbeiten`, `defs`); `web/lernwald.js` – Karte, Gebiet, Chronik, Album,
+    `web/iso-stadt.js`, `web/iso-wald.js` – ihr Stil je Thema (`szene`); `web/lernwald.js` – Karte, Gebiet, Chronik, Album,
     Vögel, Zoomen
 - `werkzeuge/` – Beispielsammlung, HTML-Vorschau, Paketieren, Test-Add-on für ein echtes Anki
 - `tests/` – Tests für `daten.py`
@@ -127,14 +127,14 @@ Ein neues Thema braucht einen Eintrag in `THEMEN` (`daten.py`, Belohnungen mit K
 gibt), eine Datei `web/thema-NAME.js` mit denselben Feldern wie `thema-wald.js`, einen Eintrag in `SKRIPTE`
 (`ansicht.py`), einen Text in `THEMENTEXT` (`einstellungen.py`), Wörter für `LW.wachstum` und einen Stil
 für die Ansicht von oben (`web/iso-NAME.js` nach dem Muster von `iso-wald.js`, setzt `szene`). Optional:
-`ausbauText`, `leuteText`, `pflasterTitel`, `nachbearbeiten` und `defs` (siehe `thema-tusche.js`).
+`ausbauText`, `leuteText`, `pflasterTitel`.
 
 ## Entwickeln
 
 ```sh
 python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt   # anki + aqt (Anki 26.09 samt Qt)
 .venv/bin/python -m unittest discover tests                              # Tests
-.venv/bin/python werkzeuge/vorschau.py /tmp/vorschau.html tusche         # Vorschau ohne Anki (wald, stadt, tusche)
+.venv/bin/python werkzeuge/vorschau.py /tmp/vorschau.html stadt          # Vorschau ohne Anki (wald, stadt)
 .venv/bin/python werkzeuge/paketieren.py                                 # dist/lernwald-<version>.ankiaddon
 ```
 

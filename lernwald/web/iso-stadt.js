@@ -3,7 +3,6 @@
 // Lizenz: GNU AGPL-3.0-or-later, siehe LICENSE
 // Stil der Stadt für die Ansicht von oben (iso.js): Häuser bis Wolkenkratzer, Kutschen, Autos, Straßenbahn,
 // Eisenbahn mit Bahnhof, Stadtmauer, Laternen, Bänke, Aquädukt, Felder und Bäume ringsum.
-// Gilt auch für die Tusche-Stadt (sie übernimmt die Stadt samt dieser Ansicht).
 (function () {
   "use strict";
   const { f, wahl, zufall } = window.LW;
@@ -12,7 +11,8 @@
   const { WAND, DACH, WAND_W, DACH_W, GLAS, STEIN, GOLD } = B;
 
   // Hochhaus auf einer Parzelle: hoch = 1 Hochhaus, 2 hohes Hochhaus mit Absatz, 3 Wolkenkratzer aus Glas
-  function hochhaus(L, hoch, i, j, r, licht) {
+  function hochhaus(ctx, hoch, i, j) {
+    const { L, r, licht } = ctx;
     let s = "";
     if (hoch === 3) {
       const geschosse = 16 + Math.floor(r() * 7), h = geschosse * 6, glas = wahl(r, ["#7e9bb3", "#6a8aa6", "#8aa7b8"]);
@@ -24,8 +24,9 @@
       }
       s += quader(L, i + 0.35, j + 0.35, i + 0.65, j + 0.65, 5, "#9aa5ad", h);
       const top = P(i + 0.5, j + 0.5, h + 5);
-      s += `<path d="M${pt(top)} l0,-14" stroke="${L("#4a4038")}" stroke-width="1"/>` +
-        `<circle cx="${f(top[0])}" cy="${f(top[1] - 14)}" r="1.4" fill="#e0322b" class="lw-blinken"/>`;
+      s += `<path d="M${pt(top)} l0,-14" stroke="${L("#4a4038")}" stroke-width="1"/>`;
+      // das blinkende Licht als eigenes Teil, damit das Hochhaus selbst ruhig bleibt (ebenen.js)
+      ctx.neu(i + j + 1.01, `<circle cx="${f(top[0])}" cy="${f(top[1] - 14)}" r="1.4" fill="#e0322b" class="lw-blinken"/>`);
       return s;
     }
     const fassade = wahl(r, ["#d9d2c4", "#c9b8a0", "#b8b0a6", "#e3dccf", "#c7a98a"]);
@@ -45,7 +46,7 @@
 
   function haus(ctx, b, i, j) {
     const { L, r, licht } = ctx, [stufe, welk, hoch] = b;
-    if (stufe === "alt" && hoch) return hochhaus(L, hoch, i, j, r, licht) + (welk ? unkraut(i, j) : "");
+    if (stufe === "alt" && hoch) return hochhaus(ctx, hoch, i, j) + (welk ? unkraut(i, j) : "");
     const wand = wahl(r, stufe === "krank" ? WAND_W : WAND), dach = wahl(r, stufe === "krank" ? DACH_W : DACH);
     const quer = r() < 0.5;
     let s = "";

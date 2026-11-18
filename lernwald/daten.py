@@ -68,8 +68,6 @@ THEMEN = {
         ),
     },
 }
-# Tusche-Stadt: dieselbe Stadt, gezeichnet wie ein Kupferstich; teilt sich die Sehenswürdigkeiten mit „stadt“
-THEMEN["tusche"] = {"name": "Tusche-Stadt", "knopf": "Stadt", "belohnungen": THEMEN["stadt"]["belohnungen"]}
 TIERE = THEMEN["wald"]["belohnungen"]
 
 CHRONIK_TAGE = 371      # so viele Tage zeigt die Chronik (53 Wochen)
@@ -96,6 +94,8 @@ def einstellungen(roh):
     cfg = dict(STANDARD)
     cfg.update(roh or {})
     cfg["gebiete"] = [g for g in cfg.get("gebiete") or [] if (g.get("wert") or "").strip()]
+    if cfg["thema"] == "tusche":  # die Tusche-Stadt gibt es nicht mehr (bis 0.9.0); ihre Sehenswürdigkeiten sind die der Stadt
+        cfg["thema"] = "stadt"
     if cfg["thema"] not in THEMEN:
         cfg["thema"] = STANDARD["thema"]
     try:

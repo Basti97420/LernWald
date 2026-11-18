@@ -22,9 +22,7 @@
   }
 
   const zustandText = (g) => T.zustand[g.zustand] + (g.gesundheit === null ? "" : " " + g.gesundheit + " %");
-  // Themen können die fertige Zeichnung umfärben (Tusche-Stadt: Schraffur statt Farbe)
-  const N = (svg) => (T.nachbearbeiten ? T.nachbearbeiten(svg) : svg);
-  const symbol = (inhalt) => `<svg class="einpassen" width="26" height="30"><g class="zeichnung">${N(inhalt)}</g></svg>`;
+  const symbol = (inhalt) => `<svg class="einpassen" width="26" height="30"><g class="zeichnung">${inhalt}</g></svg>`;
   const zahl = (n) => Number(n).toLocaleString("de-DE");
   const datumText = (iso) => new Date(iso + "T12:00:00").toLocaleDateString("de-DE");
 
@@ -196,7 +194,7 @@
       s += `<g class="gebiet" data-gebiet="${i}" transform="translate(${f(o.x)},${f(o.y)})">${inhalt}</g>`;
     });
     s += voegel(minX - rand - 40, minY - rand, maxX - minX + 2 * rand + 80, (maxY - minY) * 0.5, 5, zufall(11));
-    return `<svg class="karte" viewBox="${vb}" preserveAspectRatio="xMidYMid meet"><g class="zeichnung">${N(s)}</g>${schilder}</svg>`;
+    return `<svg class="karte" viewBox="${vb}" preserveAspectRatio="xMidYMid meet"><g class="zeichnung">${s}</g>${schilder}</svg>`;
   }
 
   function legende() {
@@ -216,9 +214,9 @@
     // Ansicht von oben (iso.js) mit dem Stil des Themas (iso-stadt.js, iso-wald.js)
     const iso = T.szene(g, { rnd, zeit, wetter, c, wachsen, hilfen: { dauer, figur, voegel } });
     const fuellen = root.classList.contains("lw-hintergrund") ? "slice" : "meet";
-    const grund = T.nachbearbeiten ? "#f4ecd8" : iso.grund;
+    const grund = iso.grund;
     return { svg: `<svg class="szene von-oben" viewBox="${iso.viewBox}" preserveAspectRatio="xMidYMid ${fuellen}" style="background:${grund}">` +
-      `<g class="zeichnung">${N(iso.svg)}</g></svg>`, n: g.baeume.length, c, wetter, zeit };
+      `<g class="zeichnung">${iso.svg}</g></svg>`, n: g.baeume.length, c, wetter, zeit };
   }
 
   function zeigeGebiet(i) {
@@ -331,7 +329,7 @@
     });
     return `<svg class="pflaster" viewBox="-30 0 ${53 * W + 34} ${18 + 7 * W + 4}">` +
       ["Mo", "", "Mi", "", "Fr", "", "So"].map((t, i) => `<text x="-26" y="${18 + i * W + 11}" class="monat">${t}</text>`).join("") +
-      `<g class="zeichnung">${N(s)}</g></svg>`;
+      `<g class="zeichnung">${s}</g></svg>`;
   }
 
   function zeigeChronik() {
@@ -347,7 +345,7 @@
       kachel(c.tageszeit ? ZEIT_TEXT[c.tageszeit] : "–", "meist gelernt"),
     ].join("");
     const steine = c.meilensteine.slice().reverse().map((m) =>
-      `<div class="fund"><svg class="einpassen" width="90" height="80"><g class="zeichnung">${N(denkmal(MEILENSTEIN[m.art].bild))}</g></svg>
+      `<div class="fund"><svg class="einpassen" width="90" height="80"><g class="zeichnung">${denkmal(MEILENSTEIN[m.art].bild)}</g></svg>
         <b>${MEILENSTEIN[m.art].text(m.wert)}</b><span>erreicht am ${datumText(m.datum)}</span></div>`).join("");
     const naechste = c.naechste.map((m) =>
       `<li>${MEILENSTEIN[m.art].text(m.wert)}: ${zahl(m.stand)} von ${zahl(m.wert)}</li>`).join("");
@@ -375,7 +373,7 @@
       const da = D.album[t.id];
       const datum = da ? datumText(da) : "";
       return `<div class="fund ${da ? "" : "fehlt"} ${D.neu && D.neu.includes(t.id) ? "neu" : ""}">
-        <svg class="einpassen" width="132" height="110"><g class="zeichnung">${N(T.belohnung(t.id))}</g></svg>
+        <svg class="einpassen" width="132" height="110"><g class="zeichnung">${T.belohnung(t.id)}</g></svg>
         <b>${da ? esc(t.name) : "?"}</b>
         <span>${da ? T.datum + " " + datum : T.ab(t.ab)}</span></div>`;
     }).join("");
@@ -390,15 +388,17 @@
     root = document.getElementById("lernwald");
     root.classList.add("thema-" + D.thema);
     if (D.animationen === false) root.classList.add("lw-ruhig");
-    if (T.defs && !document.getElementById("lernwald-defs")) {
-      document.body.insertAdjacentHTML("afterbegin",
-        `<svg id="lernwald-defs" width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${T.defs}</defs></svg>`);
-    }
     if (root.classList.contains("lw-hintergrund")) zeigeHintergrund();
     else zeigeKarte();
   }
 
-  window.lernwald = { zeigeKarte, zeigeGebiet, zeigeAlbum, zeigeChronik };
+  // Ist Anki nicht im Vordergrund, steht alles still und kostet nichts (ansicht.py ruft das auf)
+  function pausieren(an) {
+    const el = document.getElementById("lernwald");
+    if (el) el.classList.toggle("lw-pause", !!an);
+  }
+
+  window.lernwald = { zeigeKarte, zeigeGebiet, zeigeAlbum, zeigeChronik, pausieren };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
   else start();
 })();

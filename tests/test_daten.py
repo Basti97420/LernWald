@@ -36,6 +36,7 @@ class Stufen(unittest.TestCase):
         self.assertEqual(daten.einstellungen({})["thema"], "wald")
         self.assertEqual(daten.einstellungen({"thema": "stadt"})["thema"], "stadt")
         self.assertEqual(daten.einstellungen({"thema": "mond"})["thema"], "wald")
+        self.assertEqual(daten.einstellungen({"thema": "tusche"})["thema"], "stadt")  # gibt es nicht mehr
 
     def test_hintergrund_einstellungen(self):
         self.assertTrue(daten.einstellungen({})["hintergrund"])
@@ -47,7 +48,6 @@ class Stufen(unittest.TestCase):
 
     def test_belohnungen_eindeutig(self):
         # das Album ist ein gemeinsames Wörterbuch für alle Themen
-        # Themen, die dieselbe Liste teilen (Stadt und Tusche-Stadt), zählen einmal
         listen = {id(t["belohnungen"]): t["belohnungen"] for t in daten.THEMEN.values()}
         ids = [b[0] for liste in listen.values() for b in liste]
         self.assertEqual(len(ids), len(set(ids)))
@@ -182,7 +182,7 @@ class Sammlung(unittest.TestCase):
         self.assertIn("meise", frei)
 
     def test_chronik(self):
-        wald = daten.wald_berechnen(self.col, {"thema": "tusche"})
+        wald = daten.wald_berechnen(self.col, {"thema": "stadt"})
         c = wald["chronik"]
         self.assertEqual(len(c["tage"]), daten.CHRONIK_TAGE)
         self.assertEqual(c["serie"], 23)                    # Beispiel: die letzten 23 Tage ohne Lücke

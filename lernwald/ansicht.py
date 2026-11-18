@@ -8,7 +8,7 @@ import json
 import os
 
 from aqt import mw
-from aqt.qt import QDialog, QVBoxLayout
+from aqt.qt import QDialog, Qt, QVBoxLayout
 from aqt.utils import restoreGeom, saveGeom
 from aqt.webview import AnkiWebView
 
@@ -16,8 +16,7 @@ from . import daten
 
 ORDNER = os.path.dirname(__file__)
 ALBUM = os.path.join(ORDNER, "user_files", "album.json")
-SKRIPTE = ("grundlagen.js", "thema-wald.js", "thema-stadt.js", "iso.js", "iso-stadt.js", "iso-wald.js",
-           "thema-tusche.js", "lernwald.js")  # Reihenfolge wichtig
+SKRIPTE = ("grundlagen.js", "thema-wald.js", "thema-stadt.js", "iso.js", "iso-stadt.js", "iso-wald.js", "lernwald.js")  # Reihenfolge wichtig
 
 _fenster = None
 
@@ -96,6 +95,20 @@ def _hintergrund_daten(cfg):
     return _zwischenspeicher[cfg["_ansicht"]][1]
 
 
+def _im_vordergrund():
+    return mw.app.applicationState() == Qt.ApplicationState.ApplicationActive
+
+
+def anwendung_zustand(_zustand=None):
+    """Anki kommt in den Vordergrund oder geht in den Hintergrund: Bewegung weiterlaufen lassen bzw. anhalten.
+    Solange Anki nicht vorn ist, schaut niemand hin; angehalten kostet die Ansicht nichts."""
+    js = "window.lernwald && lernwald.pausieren(%s)" % ("false" if _im_vordergrund() else "true")
+    if getattr(mw, "web", None):
+        mw.web.eval(js)
+    if _fenster is not None:
+        _fenster.web.eval(js)
+
+
 def hintergrund_einsetzen(web_content, context):
     """gui_hooks.webview_will_set_content: in der Stapelübersicht die Karte aller Gebiete, im geöffneten Stapel
     sein eigenes Gebiet (Wald bzw. Stadt nur aus diesem Stapel) blass als Hintergrund."""
@@ -123,9 +136,10 @@ def hintergrund_einsetzen(web_content, context):
     web_content.js.extend(pfad + d for d in SKRIPTE)
     roh = json.dumps(wald, ensure_ascii=False).replace("</", "<\\/")
     web_content.body += (
-        '<div id="lernwald" class="lw-hintergrund" data-ansicht="%s" style="--lw-deckkraft:%s" aria-hidden="true"></div>'
+        '<div id="lernwald" class="lw-hintergrund%s" data-ansicht="%s" style="--lw-deckkraft:%s" aria-hidden="true"></div>'
         '<script type="application/json" id="lernwald-daten">%s</script>'
-        % ("gebiet" if cfg["_ansicht"] == "stapel" else "karte", cfg["hintergrund_deckkraft"] / 100, roh))
+        % ("" if _im_vordergrund() else " lw-pause", "gebiet" if cfg["_ansicht"] == "stapel" else "karte",
+           cfg["hintergrund_deckkraft"] / 100, roh))
 
 
 def zeigen():
