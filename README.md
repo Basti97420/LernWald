@@ -17,6 +17,74 @@ ziehen ein.
 
 Alle Bilder sind im Code gezeichnet, ohne fremde Grafiken.
 
+## So wächst die Stadt
+
+**Jede Karte ist ein Gebäude.** Was daraus wird, hängt von ihrem Intervall und davon ab, wie oft sie vergessen wurde:
+
+| Karte | Gebäude | Einwohner |
+|---|---|---|
+| neu | Bauplatz | 0 |
+| in der Lernphase | Baustelle | 0 |
+| Intervall unter 21 Tagen | Hütte | 1 |
+| ab 21 Tagen (reif) | Haus | 3 |
+| ab 90 Tagen, höchstens 1× vergessen | Stadthaus oder Turm | 6 |
+| ab 180 Tagen, höchstens 1× vergessen | Hochhaus | 12 |
+| ab 365 Tagen, nie vergessen | hohes Hochhaus | 25 |
+| ab 730 Tagen, nie vergessen | Wolkenkratzer | 50 |
+| 8× vergessen oder Leech | baufälliges Haus | 1 |
+| ausgesetzt | Ruine | 0 |
+
+Ist eine Karte fällig, wuchert Unkraut ums Haus und es zählt nur die Hälfte seiner Einwohner. Die größten
+Gebäude stehen in der Mitte, die Stadt wächst vom Marktplatz aus in alle Richtungen.
+
+**Die Einwohner bestimmen Größe und Leben:**
+
+| Einwohner | Größe | kommt dazu |
+|---|---|---|
+| unter 50 | Weiler | Leute auf den Straßen (eine Figur je 20 Einwohner) |
+| ab 50 | Dorf | gepflasterte Straßen mit Kutschen |
+| ab 300 | Kleinstadt | Eisenbahn |
+| ab 600 | | erste Autos, danach immer mehr statt Kutschen |
+| ab 1.000 | Stadt | Straßenbahn und Bahnhof |
+| ab 1.500 | | zweiter Zug (dritter ab 2.700, vierter ab 3.900) |
+| ab 3.000 | Großstadt | |
+| ab 8.000 | Metropole | |
+
+Mit den Einwohnern wächst alles weiter: mehr Leute, Fahrzeuge und Straßenbahnen, längere Züge.
+
+**Die Stadtmauer** zeigt, wie sicher der Stapel sitzt, also welcher Anteil der Karten reif ist (Intervall ab
+21 Tagen): ab 15 % Holzpalisade, ab 35 % niedrige Steinmauer, ab 55 % Mauer mit Zinnen und Ecktürmen, ab 75 %
+hohe Mauer mit Tortürmen, ab 90 % doppelter Mauerring mit Wassergraben.
+
+**Lerntage** im Stapel bauen mit: je 7 Tage eine Laterne, je 30 Tage eine Bank, ab 200 Tagen ein Aquädukt.
+Ab 7 Tagen Lernserie hängen Wimpel über dem Marktplatz.
+
+**Zustand und Sehenswürdigkeiten:** Jedes Gebiet ist *lebendig*, *wächst* oder *verfällt*, je nachdem, wie viele
+Karten reif sind und wie viele fällig oder baufällig. Lebendige Gebiete mit mindestens 10 reifen Karten
+bekommen Sehenswürdigkeiten auf den Marktplatz. Welche, hängt davon ab, wie viele deiner Gebiete lebendig sind:
+
+| lebendige Gebiete | Sehenswürdigkeiten |
+|---|---|
+| 1 | Dorfbrunnen, Marktstand |
+| 2 | Maibaum, Windmühle |
+| 3 | Kapelle, Rathaus |
+| 4 | Uhrturm |
+| 5 | Stadttor |
+| 6 | Kirche |
+| 7 | Burg |
+| 8 | Dom |
+| 10 | Schloss |
+
+Außerdem: Die Trefferquote der letzten 30 Tage macht das Wetter (ab 90 % Sonne, ab 80 % Wolken, darunter Regen),
+und die Tageszeit, zu der du meistens lernst, das Licht. Nachts leuchten die Fenster.
+
+Im Fenster steht unter jedem Gebiet, wie weit es bis zur nächsten Größe ist, was als Nächstes kommt und welche
+Häuser beim nächsten richtigen Wiederholen voraussichtlich aufsteigen.
+
+**Im Wald** gilt dasselbe für die Bäume (Sprössling bis dicker alter Baum, kranker Baum, Baumstumpf). Lebendige
+Gebiete locken Tiere an, von der Kohlmeise (1 lebendiges Gebiet) bis zum Wolf (10). Je 3 Lerntage blüht eine
+Blume, je 30 steht eine Bank.
+
 ## Installieren
 
 Voraussetzung: Anki 23.10 oder neuer.
